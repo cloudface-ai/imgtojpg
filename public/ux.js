@@ -165,18 +165,34 @@
   // Beta badge and anonymous analytics opt-out
   (function betaBadge(){
     try{
+      const LS_FOLDED = 'beta_badge_folded';
       const badge = document.createElement('div');
       badge.style.position = 'fixed';
-      badge.style.left = '14px';
+      badge.style.left = '0';
       badge.style.bottom = '14px';
       badge.style.zIndex = '99997';
-      badge.style.background = '#1f2937';
+      badge.style.background = 'rgba(31,41,55,0.85)';
       badge.style.color = '#fff';
-      badge.style.borderRadius = '10px';
+      badge.style.borderTopRightRadius = '10px';
+      badge.style.borderBottomRightRadius = '10px';
       badge.style.fontSize = '12px';
       badge.style.padding = '6px 8px';
       badge.style.boxShadow = '0 6px 20px rgba(0,0,0,.25)';
-      badge.innerHTML = '<b>Beta</b> · Anonymous usage helps improve the tool';
+      badge.style.display = 'flex';
+      badge.style.alignItems = 'center';
+      const text = document.createElement('span');
+      text.textContent = 'Beta · Anonymous usage helps improve the tool';
+      const toggle = document.createElement('button');
+      toggle.textContent = '‹';
+      toggle.title = 'Collapse';
+      toggle.style.marginLeft = '8px';
+      toggle.style.background = '#374151';
+      toggle.style.color = '#fff';
+      toggle.style.border = 'none';
+      toggle.style.borderRadius = '8px';
+      toggle.style.padding = '2px 6px';
+      toggle.style.cursor = 'pointer';
+      badge.appendChild(text);
       const opt = document.createElement('button');
       opt.textContent = (localStorage.getItem('anon_optout') === '1') ? 'Enable analytics' : 'Disable analytics';
       opt.style.marginLeft = '8px';
@@ -193,7 +209,33 @@
         showToast('info', curr ? 'Anonymous analytics enabled.' : 'Anonymous analytics disabled.');
       });
       badge.appendChild(opt);
+      badge.appendChild(toggle);
       document.body.appendChild(badge);
+
+      function fold(){
+        badge.style.width = '28px';
+        badge.style.padding = '6px 4px';
+        text.style.display = 'none';
+        opt.style.display = 'none';
+        toggle.textContent = '›';
+        toggle.title = 'Expand';
+        localStorage.setItem(LS_FOLDED,'1');
+      }
+      function expand(){
+        badge.style.width = '';
+        badge.style.padding = '6px 8px';
+        text.style.display = '';
+        opt.style.display = '';
+        toggle.textContent = '‹';
+        toggle.title = 'Collapse';
+        localStorage.setItem(LS_FOLDED,'0');
+      }
+      toggle.addEventListener('click', ()=>{
+        if (text.style.display === 'none') expand(); else fold();
+      });
+      if (localStorage.getItem(LS_FOLDED) === '1') fold();
+      // Auto-fold after 8 seconds on first load
+      if (!localStorage.getItem(LS_FOLDED)) setTimeout(fold, 8000);
     }catch(_){}
   })();
 

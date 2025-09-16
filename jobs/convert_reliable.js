@@ -1,5 +1,5 @@
 // jobs/convert_reliable.js
-// Reliable RAW pipeline: try libvips first, fallback to dcraw, then Sharp for final format
+// Reliable RAW pipeline: prefer dcraw_emu -> dcraw first for RAW; libvips/ImageMagick only as fallbacks
 const { parentPort, workerData } = require('worker_threads');
 const fs = require('fs');
 const path = require('path');
@@ -273,46 +273,48 @@ async function writePsd(fromBufferOrPath, outputPath) {
         } else if (isRawExt(ext)) {
           // RAW: special handling for TIFF/PSD direct paths first
           if (outputFormat.toLowerCase() === 'tiff') {
-            try {
-              // 1) Try libvips direct to TIFF (8-bit, no alpha)
-              const vipsTiffCmd = `vips copy "${inputPath}" "${outputPath}"`;
-              execSync(vipsTiffCmd, { stdio: 'pipe' });
-              if (!fs.existsSync(outputPath)) {
-                throw new Error('vips did not write TIFF');
-              }
-              // Normalize to JPEG-in-TIFF Q92 to reduce size, visually lossless
-              const norm = await sharp(outputPath).removeAlpha().tiff({ compression: 'jpeg', quality: 92 }).toBuffer();
-              fs.writeFileSync(outputPath, norm);
-              convertedFiles.push({ filename: path.basename(outputPath), size: norm.length });
-              continue;
-            } catch (_) {
+            let ok = false;
+            // 1) Try dcraw_emu → TIFF
+            try { buffer = await processWithDcrawEmu(inputPath, sessionPath, 'tiff', outputPath); ok = true; } catch (_) {}
+            // 2) Then dcraw → TIFF
+            if (!ok) { try { buffer = await processWithDcraw(inputPath, sessionPath, 'tiff', outputPath); ok = true; } catch (_) {} }
+            // 3) Then ImageMagick direct
+            if (!ok) {
               try {
-                // 2) Fallback to ImageMagick direct
                 const cmd = getMagickCmd();
                 execSync(`${cmd} "${inputPath}" -alpha off -depth 8 -compress JPEG -quality 92 "${outputPath}"`, { stdio: 'pipe' });
-                if (!fs.existsSync(outputPath)) throw new Error('magick did not write TIFF');
-                convertedFiles.push({ filename: path.basename(outputPath), size: fs.statSync(outputPath).size });
-                continue;
-              } catch (imErr) {
-                // 3) Last fallback: dcraw route
-                buffer = await processWithDcraw(inputPath, sessionPath, outputFormat, outputPath);
-              }
+                if (fs.existsSync(outputPath)) {
+                  convertedFiles.push({ filename: path.basename(outputPath), size: fs.statSync(outputPath).size });
+                  continue;
+                }
+              } catch (_) {}
             }
+            // 4) Last fallback: libvips
+            if (!ok) { buffer = await processWithVips(inputPath, sessionPath, 'tiff'); }
           } else if (outputFormat.toLowerCase() === 'psd') {
-            try {
-              // Try ImageMagick direct PSD (flatten 8-bit)
-              const cmd = getMagickCmd();
-              execSync(`${cmd} "${inputPath}" -alpha off -depth 8 "${outputPath}"`, { stdio: 'pipe' });
-              if (!fs.existsSync(outputPath)) throw new Error('magick did not write PSD');
-              convertedFiles.push({ filename: path.basename(outputPath), size: fs.statSync(outputPath).size });
-              continue;
-            } catch (psdErr) {
-              // fallback: generate high‑quality JPEG base then write PSD
+            // Prefer RAW → TIFF via dcraw, then write PSD
+            let baseTiff;
+            try { baseTiff = await processWithDcrawEmu(inputPath, sessionPath, 'tiff', outputPath); } catch (_) {}
+            if (!baseTiff) { try { baseTiff = await processWithDcraw(inputPath, sessionPath, 'tiff', outputPath); } catch (_) {} }
+            if (!baseTiff) {
+              // fallback to ImageMagick direct PSD
+              try {
+                const cmd = getMagickCmd();
+                execSync(`${cmd} "${inputPath}" -alpha off -depth 8 "${outputPath}"`, { stdio: 'pipe' });
+                if (fs.existsSync(outputPath)) { convertedFiles.push({ filename: path.basename(outputPath), size: fs.statSync(outputPath).size }); continue; }
+              } catch (_) {}
+            }
+            if (!baseTiff) {
+              // last fallback: libvips → jpg then PSD
               let baseJpg;
               try { baseJpg = await processWithVips(inputPath, sessionPath, 'jpg'); } catch (_) {}
               if (!baseJpg) baseJpg = await processWithDcraw(inputPath, sessionPath, 'jpg', outputPath);
               await writePsd(baseJpg, outputPath);
               convertedFiles.push({ filename: path.basename(outputPath), size: fs.existsSync(outputPath) ? fs.statSync(outputPath).size : baseJpg.length });
+              continue;
+            } else {
+              await writePsd(baseTiff, outputPath);
+              convertedFiles.push({ filename: path.basename(outputPath), size: fs.existsSync(outputPath) ? fs.statSync(outputPath).size : baseTiff.length });
               continue;
             }
           } else {
@@ -341,15 +343,11 @@ async function writePsd(fromBufferOrPath, outputPath) {
                 } catch (_) {}
               }
             } else {
-              // non-JPG raw targets: try dcraw_emu → vips → dcraw
+              // non-JPG raw targets: try dcraw_emu → dcraw → vips
               let ok = false;
               try { buffer = await processWithDcrawEmu(inputPath, sessionPath, outputFormat, outputPath); ok = true; } catch (_) {}
-              if (!ok) {
-                try { buffer = await processWithVips(inputPath, sessionPath, outputFormat); ok = true; } catch (_) {}
-              }
-              if (!ok) {
-                buffer = await processWithDcraw(inputPath, sessionPath, outputFormat, outputPath);
-              }
+              if (!ok) { try { buffer = await processWithDcraw(inputPath, sessionPath, outputFormat, outputPath); ok = true; } catch (_) {} }
+              if (!ok) { buffer = await processWithVips(inputPath, sessionPath, outputFormat); }
             }
           }
         } else {
