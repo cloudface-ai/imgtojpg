@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blog Post - imgtojpg.org</title>
+  <meta name="description" content="Blog post from imgtojpg.org - Image conversion tips and tutorials">
+  <meta name="keywords" content="blog, image conversion, photography, tutorials">
+  <meta name="author" content="Vinod Kumar">
+  
+  <!-- SEO Meta Tags -->
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="theme-color" content="#0066CC">
+  <meta name="msapplication-TileColor" content="#0066CC">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Blog Post - imgtojpg.org">
+  <meta property="og:description" content="Blog post from imgtojpg.org">
+  <meta property="og:image" content="https://imgtojpg.org/Vinod Kumar.png">
+  <meta property="og:site_name" content="imgtojpg.org">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="Blog Post - imgtojpg.org">
+  <meta property="twitter:description" content="Blog post from imgtojpg.org">
+  <meta property="twitter:image" content="https://imgtojpg.org/Vinod Kumar.png">
+  
+  <!-- Canonical -->
+  <link rel="canonical" href="https://imgtojpg.org/blog-post.html" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #2c2c2c;
+    }
+    
+    .prose {
+      max-width: 65ch;
+      margin: 0 auto;
+    }
+    
+    .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+      color: #1f2937;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+    
+    .prose h1 { font-size: 2.25rem; }
+    .prose h2 { font-size: 1.875rem; }
+    .prose h3 { font-size: 1.5rem; }
+    .prose h4 { font-size: 1.25rem; }
+    
+    .prose p {
+      margin-bottom: 1.5rem;
+      color: #374151;
+    }
+    
+    .prose ul, .prose ol {
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
+    }
+    
+    .prose li {
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+    
+    .prose blockquote {
+      border-left: 4px solid #3b82f6;
+      padding-left: 1rem;
+      margin: 2rem 0;
+      font-style: italic;
+      color: #6b7280;
+    }
+    
+    .prose code {
+      background-color: #f3f4f6;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 0.875rem;
+    }
+    
+    .prose pre {
+      background-color: #1f2937;
+      color: #f9fafb;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      margin: 2rem 0;
+    }
+    
+    .prose img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+      margin: 2rem 0;
+    }
+    
+    .prose table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+    }
+    
+    .prose th, .prose td {
+      border: 1px solid #d1d5db;
+      padding: 0.75rem;
+      text-align: left;
+    }
+    
+    .prose th {
+      background-color: #f9fafb;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- Navigation Header -->
+  <nav class="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <a href="/" class="text-xl sm:text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
+            imgtojpg.org
+          </a>
+        </div>
+        <ul class="hidden sm:flex items-center space-x-6">
+          <li><a href="/" class="text-gray-700 hover:text-gray-900 font-medium transition-colors">Home</a></li>
+          <li><a href="/blog.html" class="text-blue-600 font-semibold">Blog</a></li>
+          <li><a href="/blog-manager.html" class="text-gray-700 hover:text-gray-900 font-medium transition-colors">Manage Blog</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Blog Post Content -->
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div id="blogPostContent">
+      <!-- Loading state -->
+      <div class="text-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p class="text-gray-500 text-lg">Loading blog post...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-8 mt-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p class="text-gray-400">© 2025 imgtojpg.org. Powered by <span class="font-semibold text-gray-300">nerdykeeda</span></p>
+      <div class="mt-4">
+        <a href="/blog.html" class="text-blue-400 hover:text-blue-300 transition-colors">← Back to Blog</a>
+        <span class="mx-4 text-gray-600">|</span>
+        <a href="/" class="text-blue-400 hover:text-blue-300 transition-colors">Home</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Blog Post Integration Script -->
+  <script>
+    class BlogPostViewer {
+      constructor() {
+        this.init();
+      }
+
+      init() {
+        console.log('Blog Post Viewer initializing...');
+        this.loadPostFromURL();
+      }
+
+      loadPostFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('id');
+        
+        if (!postId) {
+          this.showError('No post ID specified');
+          return;
+        }
+
+        console.log('Loading post with ID:', postId);
+        this.loadPost(postId);
+      }
+
+      loadPost(postId) {
+        try {
+          const storedPosts = localStorage.getItem('blogPosts');
+          if (!storedPosts) {
+            this.showError('No blog posts found');
+            return;
+          }
+
+          const posts = JSON.parse(storedPosts);
+          const post = posts.find(p => p.id == postId);
+
+          if (!post) {
+            this.showError('Post not found');
+            return;
+          }
+
+          if (post.status !== 'published') {
+            this.showError('This post is not published');
+            return;
+          }
+
+          this.displayPost(post);
+        } catch (error) {
+          console.error('Error loading post:', error);
+          this.showError('Error loading post');
+        }
+      }
+
+      displayPost(post) {
+        const container = document.getElementById('blogPostContent');
+        if (!container) return;
+
+        // Update page title and meta
+        document.title = `${post.title || 'Blog Post'} - imgtojpg.org`;
+        
+        // Update meta description if available
+        if (post.metaDescription) {
+          const metaDesc = document.querySelector('meta[name="description"]');
+          if (metaDesc) metaDesc.content = post.metaDescription;
+        }
+
+        // Update Open Graph tags
+        if (post.title) {
+          const ogTitle = document.querySelector('meta[property="og:title"]');
+          if (ogTitle) ogTitle.content = post.title;
+        }
+
+        if (post.metaDescription) {
+          const ogDesc = document.querySelector('meta[property="og:description"]');
+          if (ogDesc) ogDesc.content = post.metaDescription;
+        }
+
+        // Inject Article JSON-LD dynamically for rich results
+        try {
+          const existingLd = document.getElementById('dynamic-article-jsonld');
+          if (existingLd) existingLd.remove();
+          const ld = document.createElement('script');
+          ld.type = 'application/ld+json';
+          ld.id = 'dynamic-article-jsonld';
+          const published = post.publishDate || post.createdAt;
+          const json = {
+            '@context': 'https://schema.org',
+            '@type': 'Article',
+            'headline': post.title || 'Blog Post',
+            'description': post.metaDescription || 'Article from imgtojpg.org',
+            'author': {
+              '@type': 'Person',
+              'name': post.author || 'Vinod Kumar'
+            },
+            'publisher': {
+              '@type': 'Organization',
+              'name': 'imgtojpg.org',
+              'logo': {
+                '@type': 'ImageObject',
+                'url': 'https://imgtojpg.org/favicon.png'
+              }
+            },
+            'mainEntityOfPage': {
+              '@type': 'WebPage',
+              '@id': window.location.href
+            },
+            'datePublished': published,
+            'dateModified': post.updatedAt || published,
+            'image': post.featuredImage || 'https://imgtojpg.org/Vinod Kumar.png'
+          };
+          ld.textContent = JSON.stringify(json);
+          document.head.appendChild(ld);
+        } catch (e) { console.warn('JSON-LD injection failed', e); }
+
+        // Format date
+        const publishDate = new Date(post.publishDate || post.createdAt);
+        const formattedDate = publishDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+
+        // Extract categories and tags
+        const categories = post.categories ? post.categories.split(',').map(cat => cat.trim()) : [];
+        const tags = post.tags ? post.tags.split(',').map(tag => tag.trim()) : [];
+
+        // Create categories and tags HTML
+        const categoriesHTML = categories.map(cat => 
+          `<span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">${cat}</span>`
+        ).join('');
+
+        const tagsHTML = tags.map(tag => 
+          `<span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">${tag}</span>`
+        ).join('');
+
+        // Display the post
+        container.innerHTML = `
+          <article class="bg-white rounded-lg shadow-lg overflow-hidden">
+                     <!-- Featured Image -->
+         ${post.featuredImage ? `
+           <div class="w-full h-64 sm:h-80 lg:h-96 overflow-hidden">
+             <img src="${post.featuredImage}" alt="${post.title || 'Blog Post'}" class="w-full h-full object-cover">
+           </div>
+         ` : ''}
+         
+         <!-- Post Header -->
+         <div class="p-8 border-b border-gray-200">
+           <div class="mb-6">
+             ${categoriesHTML ? `<div class="flex flex-wrap gap-2 mb-4">${categoriesHTML}</div>` : ''}
+             <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">${post.title || 'Untitled Post'}</h1>
+             <div class="flex items-center text-gray-600 mb-4">
+               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v16a2 2 0 002 2z"></path>
+               </svg>
+               <span>${formattedDate}</span>
+             </div>
+             ${tagsHTML ? `<div class="flex flex-wrap gap-2">${tagsHTML}</div>` : ''}
+           </div>
+         </div>
+
+            <!-- Post Content -->
+            <div class="p-8">
+              <div class="prose prose-lg max-w-none">
+                ${post.content || '<p>No content available.</p>'}
+              </div>
+            </div>
+
+            <!-- Post Footer -->
+            <div class="p-8 bg-gray-50 border-t border-gray-200">
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="text-sm text-gray-600">
+                  <p>Published on ${formattedDate}</p>
+                  ${post.author ? `<p>By ${post.author}</p>` : ''}
+                </div>
+                <div class="flex space-x-4">
+                  <a href="/blog.html" class="text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                    ← Back to Blog
+                  </a>
+                  <a href="/blog-manager.html" class="text-gray-600 hover:text-gray-800 font-medium transition-colors">
+                    Manage Posts
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+
+        console.log('Post displayed successfully');
+      }
+
+      showError(message) {
+        const container = document.getElementById('blogPostContent');
+        if (!container) return;
+
+        container.innerHTML = `
+          <div class="text-center py-12">
+            <div class="text-red-500 text-6xl mb-4">⚠️</div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Error</h2>
+            <p class="text-gray-600 mb-6">${message}</p>
+            <div class="space-x-4">
+              <a href="/blog.html" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                Back to Blog
+              </a>
+              <a href="/blog-manager.html" class="inline-block bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors">
+                Manage Blog
+              </a>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      new BlogPostViewer();
+    });
+  </script>
+
+</body>
+</html>

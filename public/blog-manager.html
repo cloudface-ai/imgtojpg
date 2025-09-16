@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Manager - imgtojpg.org</title>
+    <meta name="description" content="Professional blog management tool for imgtojpg.org - Create, edit, and manage blog posts with ease">
+    <meta name="keywords" content="blog manager, content management, blog editor, post creator, imgtojpg.org">
+    <meta name="author" content="Vinod Kumar">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Quill Rich Text Editor - Multiple CDN sources for reliability -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    
+    <!-- Fallback CDN for Quill.js -->
+    <script>
+        if (typeof Quill === 'undefined') {
+            document.write('<link href="https://unpkg.com/quill@1.3.6/dist/quill.snow.css" rel="stylesheet">');
+            document.write('<script src="https://unpkg.com/quill@1.3.6/dist/quill.min.js"><\/script>');
+        }
+    </script>
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Fallback for Font Awesome -->
+    <script>
+        if (typeof FontAwesome === 'undefined') {
+            document.write('<link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.4.0/css/all.css">');
+        }
+    </script>
+    
+    <!-- Custom CSS -->
+    <style>
+        .ql-editor {
+            min-height: 400px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .post-card {
+            transition: all 0.3s ease;
+        }
+        
+        .post-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .status-draft { background-color: #fef3c7; color: #92400e; }
+        .status-published { background-color: #d1fae5; color: #065f46; }
+        .status-scheduled { background-color: #dbeafe; color: #1e40af; }
+
+        /* Quick Actions styling */
+        .quick-action-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quick-action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        .quick-action-btn:hover::before {
+            left: 100%;
+        }
+        
+        .quick-action-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Drag and Drop styling */
+        #dragDropArea.drag-over {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            transform: scale(1.02);
+        }
+
+        #dragDropArea.drag-over #uploadIcon {
+            color: #3b82f6;
+            transform: scale(1.1);
+        }
+
+        .upload-progress {
+            transition: all 0.3s ease;
+        }
+
+        .media-item {
+            transition: all 0.3s ease;
+        }
+
+        .media-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        
+        .content-area {
+            transition: margin-left 0.3s ease;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="flex justify-between items-center px-6 py-4">
+            <div class="flex items-center space-x-4">
+                <button id="sidebarToggle" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-2xl font-bold text-gray-900">Blog Manager</h1>
+                <span class="text-sm text-gray-500">imgtojpg.org</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="/" class="text-blue-600 hover:text-blue-800 text-sm">
+                    <i class="fas fa-external-link-alt mr-2"></i>View Site
+                </a>
+                <button id="newPostBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>New Post
+                </button>
+                <button id="logoutBtn" class="text-red-600 hover:text-red-800 text-sm px-3 py-2 rounded-lg hover:bg-red-50 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar w-64 bg-white shadow-lg transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-20">
+            <nav class="p-6">
+                <div class="space-y-4">
+                    <a href="#" class="nav-item flex items-center space-x-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors" data-section="dashboard">
+                        <i class="fas fa-tachometer-alt w-5"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors" data-section="posts">
+                        <i class="fas fa-file-alt w-5"></i>
+                        <span>All Posts</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors" data-section="create">
+                        <i class="fas fa-edit w-5"></i>
+                        <span>Create Post</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors" data-section="categories">
+                        <i class="fas fa-folder w-5"></i>
+                        <span>Categories</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors" data-section="media">
+                        <i class="fas fa-images w-5"></i>
+                        <span>Media Library</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors" data-section="settings">
+                        <i class="fas fa-cog w-5"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="mainContent" class="content-area flex-1 overflow-auto">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-blue-100 rounded-lg">
+                                <i class="fas fa-file-alt text-blue-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm text-gray-500">Total Posts</p>
+                                <p class="text-2xl font-bold text-gray-900" id="totalPosts">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm border">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-green-100 rounded-lg">
+                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm text-gray-500">Published</p>
+                                <p class="text-2xl font-bold text-gray-900" id="publishedPosts">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm border">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-yellow-100 rounded-lg">
+                                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm text-gray-500">Drafts</p>
+                                <p class="text-2xl font-bold text-gray-900" id="draftPosts">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm border">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-purple-100 rounded-lg">
+                                <i class="fas fa-eye text-purple-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm text-gray-500">Total Views</p>
+                                <p class="text-2xl font-bold text-gray-900" id="totalViews">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Posts</h3>
+                        <div id="recentPosts" class="space-y-3">
+                            <!-- Recent posts will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm border">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <button id="quickCreatePost" class="quick-action-btn w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-200 cursor-pointer group">
+                                <i class="fas fa-plus text-blue-600 mr-2 group-hover:text-blue-700"></i>
+                                <span class="font-medium">Create New Post</span>
+                                <div class="text-xs text-gray-500 mt-1">Start writing a new blog post</div>
+                            </button>
+                            <button id="quickUploadMedia" class="quick-action-btn w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all duration-200 cursor-pointer group">
+                                <i class="fas fa-upload text-green-600 mr-2 group-hover:text-green-700"></i>
+                                <span class="font-medium">Upload Media</span>
+                                <div class="text-xs text-gray-500 mt-1">Add images and files to your library</div>
+                            </button>
+                            <button id="quickViewBlog" class="quick-action-btn w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-orange-50 hover:border-orange-300 hover:text-orange-700 transition-all duration-200 cursor-pointer group">
+                                <i class="fas fa-external-link-alt text-orange-600 mr-2 group-hover:text-orange-700"></i>
+                                <span class="font-medium">View Public Blog</span>
+                                <div class="text-xs text-gray-500 mt-1">See how your blog looks to visitors</div>
+                            </button>
+                            <button id="quickManageSettings" class="quick-action-btn w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-all duration-200 cursor-pointer group">
+                                <i class="fas fa-cog text-purple-600 mr-2 group-hover:text-purple-700"></i>
+                                <span class="font-medium">Manage Settings</span>
+                                <div class="text-xs text-gray-500 mt-1">Configure blog preferences</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Posts Section -->
+            <section id="posts" class="section p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">All Posts</h2>
+                    <div class="flex space-x-3">
+                        <select id="statusFilter" class="border border-gray-300 rounded-lg px-3 py-2">
+                            <option value="">All Status</option>
+                            <option value="published">Published</option>
+                            <option value="draft">Draft</option>
+                            <option value="scheduled">Scheduled</option>
+                        </select>
+                        <input type="text" id="searchPosts" placeholder="Search posts..." class="border border-gray-300 rounded-lg px-3 py-2 w-64">
+                    </div>
+                </div>
+                
+                <div id="postsList" class="space-y-4">
+                    <!-- Posts will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Create/Edit Post Section -->
+            <section id="create" class="section p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900" id="createTitle">Create New Post</h2>
+                    <div class="flex space-x-3">
+                        <button id="saveDraftBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-save mr-2"></i>Save Draft
+                        </button>
+                        <button id="previewBtn" class="px-4 py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors">
+                            <i class="fas fa-eye mr-2"></i>Preview
+                        </button>
+                        <button id="publishBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-paper-plane mr-2"></i>Publish
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Main Editor -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-white p-6 rounded-lg shadow-sm border">
+                            <input type="text" id="postTitle" placeholder="Enter post title..." class="w-full text-3xl font-bold text-gray-900 border-none outline-none mb-4">
+                            <div id="editor" class="border border-gray-300 rounded-lg">
+                                <div id="editorLoading" class="p-8 text-center text-gray-500">
+                                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                                    <p>Loading editor...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="space-y-6">
+                        <!-- Post Settings -->
+                        <div class="bg-white p-6 rounded-lg shadow-sm border">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Post Settings</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                    <select id="postStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                        <option value="draft">Draft</option>
+                                        <option value="published">Published</option>
+                                        <option value="scheduled">Scheduled</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Publish Date</label>
+                                    <input type="datetime-local" id="publishDate" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Categories</label>
+                                    <input type="text" id="postCategories" placeholder="Separate with commas" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Featured Image</label>
+                                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors" id="featuredImageContainer">
+                                        <div id="featuredImagePreview" class="hidden mb-3">
+                                            <img id="featuredImageDisplay" src="" alt="Featured Image" class="w-full h-32 object-cover rounded-lg">
+                                            <button type="button" id="removeFeaturedImage" class="mt-2 text-red-600 hover:text-red-800 text-sm">
+                                                <i class="fas fa-trash mr-1"></i>Remove Image
+                                            </button>
+                                        </div>
+                                        <div id="featuredImagePlaceholder">
+                                            <i class="fas fa-image text-3xl text-gray-400 mb-2"></i>
+                                            <p class="text-sm text-gray-500">Click to upload image</p>
+                                            <p class="text-xs text-gray-400">Recommended: 1200x630px</p>
+                                        </div>
+                                        <input type="file" id="featuredImage" accept="image/*" class="hidden">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEO Settings -->
+                        <div class="bg-white p-6 rounded-lg shadow-sm border">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">SEO Settings</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Meta Title</label>
+                                    <div class="flex space-x-2">
+                                        <input type="text" id="metaTitle" placeholder="SEO title" class="flex-1 border border-gray-300 rounded-lg px-3 py-2">
+                                        <button type="button" id="autoTitleBtn" class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors" title="Auto-generate from content">
+                                            <i class="fas fa-magic"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Meta Description</label>
+                                    <div class="flex space-x-2">
+                                        <textarea id="metaDescription" rows="3" placeholder="SEO description" class="flex-1 border border-gray-300 rounded-lg px-3 py-2"></textarea>
+                                        <button type="button" id="autoDescBtn" class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors" title="Auto-generate from content">
+                                            <i class="fas fa-magic"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Keywords</label>
+                                    <div class="flex space-x-2">
+                                        <input type="text" id="metaKeywords" placeholder="SEO keywords" class="flex-1 border border-gray-300 rounded-lg px-3 py-2">
+                                        <button type="button" id="autoKeywordsBtn" class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors" title="Auto-generate from content">
+                                            <i class="fas fa-magic"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                                    <div class="flex space-x-2">
+                                        <input type="text" id="postTags" placeholder="Separate with commas" class="flex-1 border border-gray-300 rounded-lg px-3 py-2">
+                                        <button type="button" id="autoTagsBtn" class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors" title="Auto-generate from content">
+                                            <i class="fas fa-magic"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Categories Section -->
+            <section id="categories" class="section p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Categories</h2>
+                    <button id="addCategoryBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Add Category
+                    </button>
+                </div>
+                
+                <div id="categoriesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Categories will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Media Library Section -->
+            <section id="media" class="section p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Media Library</h2>
+                    <div class="flex space-x-3">
+                        <button id="refreshMediaBtn" class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-sync-alt mr-2"></i>Refresh
+                        </button>
+                        <button id="clearStorageBtn" class="border border-red-300 text-red-700 px-4 py-2 rounded-lg hover:bg-red-50 transition-colors">
+                            <i class="fas fa-trash mr-2"></i>Clear Storage
+                        </button>
+                        <button id="uploadMediaBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-upload mr-2"></i>Upload Media
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                            <div class="text-sm text-blue-800">
+                                <p class="font-medium">Media Management Tips:</p>
+                                <ul class="mt-1 space-y-1">
+                                    <li>• Click on any media item to copy its URL</li>
+                                    <li>• Use the copy button to copy URLs to clipboard</li>
+                                    <li>• Delete button removes media permanently</li>
+                                    <li>• Supported formats: JPG, PNG, GIF, WebP, SVG</li>
+                                    <li>• Max file size: 2MB per file</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div id="storageInfo" class="text-xs text-blue-600">
+                                <div>Storage: <span id="storageUsed">0</span>KB</div>
+                                <div>Media: <span id="mediaCount">0</span> files</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="mediaGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <!-- Media items will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="section p-6 hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Settings</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">General Settings</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Blog Title</label>
+                                <input type="text" id="blogTitle" value="imgtojpg.org Blog" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Blog Description</label>
+                                <textarea id="blogDescription" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2">Professional image conversion service blog</textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Posts per page</label>
+                                <input type="number" id="postsPerPage" value="10" min="1" max="50" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm border">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">SEO Settings</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Default Meta Title</label>
+                                <input type="text" id="defaultMetaTitle" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Default Meta Description</label>
+                                <textarea id="defaultMetaDescription" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2"></textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Default Keywords</label>
+                                <input type="text" id="defaultKeywords" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification System -->
+    <div id="notificationContainer"></div>
+
+    <!-- Modal for Category Management -->
+    <div id="categoryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Add Category</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Category Name</label>
+                            <input type="text" id="categoryName" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <textarea id="categoryDescription" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2"></textarea>
+                        </div>
+                        
+                        <div class="flex space-x-3">
+                            <button id="saveCategoryBtn" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Save</button>
+                            <button id="cancelCategoryBtn" class="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Media Upload -->
+    <div id="mediaModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Upload Media</h3>
+                    <div class="space-y-4">
+                        <div id="dragDropArea" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center transition-all duration-200 hover:border-blue-400 hover:bg-blue-50">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4" id="uploadIcon"></i>
+                            <p class="text-sm text-gray-500 mb-2" id="dragText">Drag and drop files here or</p>
+                            <p class="text-xs text-gray-400 mb-4">Supports: JPG, PNG, GIF, WebP, SVG</p>
+                            <input type="file" id="mediaUpload" multiple accept="image/*" class="hidden">
+                            <button id="selectMediaBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Select Files</button>
+                        </div>
+                        
+                        <div id="uploadProgress" class="hidden">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span>Uploading...</span>
+                                    <span id="uploadCount">0/0</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300 progress-bar-converter"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="uploadActions" class="flex space-x-3">
+                            <button id="uploadMediaBtn" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Upload</button>
+                            <button id="cancelMediaBtn" class="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/blog-manager.min.js"></script>
+</body>
+</html>

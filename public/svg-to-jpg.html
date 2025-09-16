@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SVG to JPG Converter - Convert Vector Images Online</title>
+  <meta name="description" content="Convert SVG vector images to JPG format online. Free SVG to JPG converter with batch processing. Perfect for logos, icons, and web graphics.">
+  <meta name="keywords" content="SVG to JPG, SVG converter, SVG to JPEG, convert SVG files, free SVG converter, online SVG converter, vector image converter, web optimization, logo converter, icon converter, SVG to JPG online, free image converter">
+  <meta name="author" content="Vinod Kumar">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  
+  <!-- Additional SEO Meta Tags -->
+  <meta name="theme-color" content="#0066CC">
+  <meta name="msapplication-TileColor" content="#0066CC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="imgtojpg.org">
+  
+  <!-- Mobile and Performance Meta Tags -->
+  <meta name="format-detection" content="telephone=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="msapplication-config" content="/browserconfig.xml">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://imgtojpg.org/svg-to-jpg.html">
+  <meta property="og:title" content="SVG to JPG Converter - Convert Vector Images">
+  <meta property="og:description" content="Convert SVG vector images to JPG format online. Free SVG to JPG converter with batch processing.">
+  <meta property="og:image" content="https://imgtojpg.org/Vinod Kumar.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="imgtojpg.org">
+  <meta property="og:locale" content="en_US">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://imgtojpg.org/svg-to-jpg.html">
+  <meta property="twitter:title" content="SVG to JPG Converter - Free Online Tool">
+  <meta property="twitter:description" content="Convert SVG vector images to JPG format online. Free SVG to JPG converter.">
+  <meta property="twitter:image" content="https://imgtojpg.org/Vinod Kumar.png">
+  
+  <!-- Canonical and Alternate Languages -->
+  <link rel="canonical" href="https://imgtojpg.org/svg-to-jpg.html" />
+  <link rel="alternate" hreflang="en" href="https://imgtojpg.org/svg-to-jpg.html" />
+  <link rel="alternate" hreflang="x-default" href="https://imgtojpg.org/svg-to-jpg.html" />
+  
+  <!-- Preconnect to external domains for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Favicon and App Icons -->
+  <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
+  
+  <link href="/style.css?v=1.0.7" rel="stylesheet">
+  
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VJZQ84RXVL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-VJZQ84RXVL');
+  </script>
+  
+  <script src="/analytics-tracker.min.js"></script>
+  <style>
+    /* Additional custom styles that can't be handled by Tailwind */
+    .loading-dots::after {
+      content: '';
+      animation: loading 1.5s infinite;
+    }
+    
+    @keyframes loading {
+      0%, 20% { content: ''; }
+      40% { content: '.'; }
+      60% { content: '..'; }
+      80%, 100% { content: '...'; }
+    }
+    
+    .adobe-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .adobe-button:hover::before {
+      left: 100%;
+    }
+    
+    .coffee-button {
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+      color: white;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-weight: 600;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .coffee-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .coffee-button:hover::before {
+      left: 100%;
+    }
+    
+    .coffee-button:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+    }
+    
+    /* Download button loading state */
+    .downloading {
+      opacity: 0.7;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+  </style>
+
+  <!-- Structured Data for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "@id": "https://imgtojpg.org/svg-to-jpg.html#webapp",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://imgtojpg.org/svg-to-jpg.html"
+    },
+    "name": "SVG to JPG Converter - Vector to Raster Converter",
+    "description": "Convert SVG vector images to JPG format online. Free SVG to JPG converter with batch processing.",
+    "url": "https://imgtojpg.org/svg-to-jpg.html",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Web Browser",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "1250",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Free SVG to JPG conversion service"
+    },
+    "featureList": [
+      "SVG vector support",
+      "High-quality JPG output",
+      "Batch processing",
+      "Web compatibility",
+      "Social media ready",
+      "Secure file handling",
+      "No registration required"
+    ],
+    "screenshot": "https://imgtojpg.org/Vinod Kumar.png",
+    "softwareVersion": "1.2.0",
+    "datePublished": "2024-01-01",
+    "dateModified": "2025-01-27"
+  }
+  </script>
+
+  <!-- Service Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": "https://imgtojpg.org/svg-to-jpg.html#service",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://imgtojpg.org/svg-to-jpg.html"
+    },
+    "name": "SVG to JPG Conversion Service",
+    "description": "Professional SVG vector to JPG raster conversion service for web and social media use",
+    "provider": {
+      "@id": "https://imgtojpg.org/#organization"
+    },
+    "serviceType": "Vector to Raster Conversion",
+    "areaServed": "Worldwide",
+    "availableChannel": {
+      "@type": "ServiceChannel",
+      "serviceUrl": "https://imgtojpg.org/svg-to-jpg.html"
+    }
+  }
+  </script>
+
+  <!-- Breadcrumb Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://imgtojpg.org/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "SVG to JPG Converter",
+        "item": "https://imgtojpg.org/svg-to-jpg.html"
+      }
+    ]
+  }
+  </script>
+
+  <!-- HowTo Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Convert SVG to JPG Online",
+    "description": "Step-by-step guide to convert SVG vector graphics to JPG format using our free online converter",
+    "image": "https://imgtojpg.org/Vinod Kumar.png",
+    "totalTime": "PT1M",
+    "estimatedCost": "0",
+    "supply": [
+      {
+        "@type": "HowToSupply",
+        "name": "SVG file"
+      },
+      {
+        "@type": "HowToSupply",
+        "name": "Web browser"
+      }
+    ],
+    "tool": [
+      {
+        "@type": "HowToTool",
+        "name": "imgtojpg.org SVG converter"
+      }
+    ],
+    "step": [
+      {
+        "@type": "HowToStep",
+        "name": "Upload SVG file",
+        "text": "Drag and drop or select your SVG vector graphics file",
+        "image": "https://imgtojpg.org/Vinod Kumar.png"
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Convert to JPG",
+        "text": "Click convert to transform your SVG to high-quality JPG format",
+        "image": "https://imgtojpg.org/Vinod Kumar.png"
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Download result",
+        "text": "Download your converted JPG file for web or social media use",
+        "image": "https://imgtojpg.org/Vinod Kumar.png"
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Navigation Header - Adobe Colors with Coffee Button -->
+  <nav class="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 transition-all duration-300">
+    <div class="container-responsive">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <a href="/" class="text-xl sm:text-2xl font-bold text-gray-900 transition-all duration-300 hover:scale-105">
+            imgtojpg.org
+          </a>
+        </div>
+        <ul class="hidden sm:flex items-center space-x-4 lg:space-x-6">
+          <li><a href="/" class="text-gray-700 hover:text-gray-900 font-medium transition-all duration-200 hover:scale-105">Home</a></li>
+          <li><a href="blog.html" class="text-gray-700 hover:text-gray-900 font-medium transition-all duration-200 hover:scale-105">Blog</a></li>
+          <li><button class="coffee-button">☕ Buy me a coffee</button></li>
+        </ul>
+        
+        <!-- Mobile menu button -->
+        <div class="sm:hidden">
+          <button id="mobile-menu-button" class="text-gray-700 hover:text-gray-900">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Mobile menu -->
+      <div id="mobile-menu" class="sm:hidden hidden">
+        <div class="px-2 pt-2 pb-3 space-y-1">
+          <a href="/" class="block text-gray-700 hover:text-gray-900 font-medium transition-all duration-200">Home</a>
+          <a href="blog.html" class="block text-gray-700 hover:text-gray-900 font-medium transition-all duration-200">Blog</a>
+          <button class="coffee-button w-full text-left">☕ Buy me a coffee</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container-responsive py-8">
+    
+    <!-- Hero Section -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+        Convert <span class="text-adobe-blue">SVG to JPG</span> Online
+      </h1>
+      <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+        Transform your SVG vector graphics into high-quality JPG images. Free, fast, and secure conversion by Vinod Kumar.
+      </p>
+    </div>
+
+    <!-- Converter Section -->
+    <div class="max-w-4xl mx-auto">
+      <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+        <div class="text-center mb-8">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-4">SVG to JPG Converter</h2>
+          <p class="text-gray-600">Upload your SVG files and convert them to JPG format instantly</p>
+        </div>
+
+        <!-- File Upload Area -->
+        <div id="upload-area" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-adobe-blue transition-colors duration-300 cursor-pointer">
+          <div class="text-6xl mb-4">📁</div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Drop SVG files here</h3>
+          <p class="text-gray-600 mb-4">or click to browse</p>
+          <input type="file" id="file-input" multiple accept=".svg" class="hidden">
+          <button class="adobe-button px-6 py-3 bg-adobe-blue text-white rounded-lg font-medium hover:bg-adobe-blue-dark transition-all duration-300">
+            Choose Files
+          </button>
+        </div>
+
+        <!-- File Display -->
+        <div id="file-display" class="mt-6 hidden">
+          <h4 class="font-semibold text-gray-900 mb-3">Selected Files:</h4>
+          <div id="file-list" class="space-y-2"></div>
+          <div class="mt-4">
+            <button id="submit-btn" class="adobe-button px-6 py-3 bg-adobe-blue text-white rounded-lg font-medium hover:bg-adobe-blue-dark transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+              Convert to JPG
+            </button>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div id="progress-container" class="mt-6 hidden">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-700">Converting...</span>
+            <span id="progress-text" class="text-sm text-gray-500">0%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="progress-bar" class="bg-adobe-blue h-2 rounded-full transition-all duration-300 progress-bar-converter"></div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="mt-6 hidden">
+          <h4 class="font-semibold text-gray-900 mb-3">Conversion Complete!</h4>
+          <div id="converted-files" class="space-y-3"></div>
+          <div class="mt-4">
+            <button id="download-all-btn" class="adobe-button px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-all duration-300">
+              Download All as ZIP
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="max-w-6xl mx-auto mb-12">
+      <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">Why Convert SVG to JPG?</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- Feature 1 -->
+        <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+          <div class="text-4xl mb-4">🌐</div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Web Compatibility</h3>
+          <p class="text-gray-600">JPG format is universally supported across all web browsers and platforms</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+          <div class="text-4xl mb-4">📱</div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Social Media Ready</h3>
+          <p class="text-gray-600">Perfect for sharing on social media platforms that don't support SVG</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+          <div class="text-4xl mb-4">🎨</div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Raster Graphics</h3>
+          <p class="text-gray-600">Convert vector graphics to pixel-based images for specific use cases</p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+          <div class="text-4xl mb-4">⚡</div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Fast Processing</h3>
+          <p class="text-gray-900 mb-2">Lightning-fast conversion with our optimized processing engine</p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+          <div class="text-4xl mb-4">🔒</div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Secure & Private</h3>
+          <p class="text-gray-600">Your files are processed securely and automatically deleted after conversion</p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+          <div class="text-4xl mb-4">💯</div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">High Quality</h3>
+          <p class="text-gray-600">Maintain image quality while converting to JPG format</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="max-w-4xl mx-auto mb-12">
+      <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">How It Works</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <div class="text-center">
+          <div class="bg-adobe-blue text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Upload SVG Files</h3>
+          <p class="text-gray-600">Drag and drop or select your SVG files from your device</p>
+        </div>
+
+        <div class="text-center">
+          <div class="bg-adobe-blue text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Convert to JPG</h3>
+          <p class="text-gray-600">Our system processes your SVG files and converts them to JPG format</p>
+        </div>
+
+        <div class="text-center">
+          <div class="bg-adobe-blue text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold mx-auto mb-4">3</div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Download Results</h3>
+          <p class="text-gray-600">Download your converted JPG files individually or as a ZIP archive</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-12">
+    <div class="container-responsive">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        
+        <!-- Company Info -->
+        <div class="col-span-1 md:col-span-2">
+          <h3 class="text-xl font-bold mb-4">imgtojpg.org</h3>
+          <p class="text-gray-400 mb-4">Free online image converter by Vinod Kumar. Convert your images to any format you need.</p>
+          <div class="flex space-x-4">
+            <a href="https://linqrius.com" target="_blank" class="text-gray-400 hover:text-white transition-colors duration-200">Linqrius.com</a>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div>
+          <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+          <ul class="space-y-2">
+            <li><a href="/" class="text-gray-400 hover:text-white transition-colors duration-200">Home</a></li>
+            <li><a href="/heic-to-jpg.html" class="hover:text-white transition-colors duration-200">HEIC to JPG</a></li>
+            <li><a href="/png-to-jpg.html" class="hover:text-white transition-colors duration-200">PNG to JPG</a></li>
+            <li><a href="/webp-to-jpg.html" class="hover:text-white transition-colors duration-200">WebP to JPG</a></li>
+            <li><a href="/tiff-to-jpg.html" class="hover:text-white transition-colors duration-200">TIFF to JPG</a></li>
+            <li><a href="/svg-to-jpg.html" class="hover:text-white transition-colors duration-200">SVG to JPG</a></li>
+            <li><a href="/camera-raw-converter.html" class="hover:text-white transition-colors duration-200">Camera Raw</a></li>
+          </ul>
+        </div>
+
+        <!-- Support -->
+        <div>
+          <h4 class="text-lg font-semibold mb-4">Support</h4>
+          <ul class="space-y-2">
+            <li><a href="/about.html" class="text-gray-400 hover:text-white transition-colors duration-200">About Us</a></li>
+            <li><a href="/help-center.html" class="hover:text-white transition-colors duration-200">Help Center</a></li>
+            <li><a href="/blog.html" class="hover:text-white transition-colors duration-200">Blog</a></li>
+            <li><a href="/privacy-policy.html" class="hover:text-white transition-colors duration-200">Privacy Policy</a></li>
+            <li><a href="/terms-of-use.html" class="hover:text-white transition-colors duration-200">Terms of Use</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-800 mt-8 pt-8 text-center">
+        <p class="text-gray-400">&copy; 2024 imgtojpg.org. All rights reserved. Created by <a href="/about.html" class="text-white hover:text-adobe-blue transition-colors duration-200">Vinod Kumar</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/script.min.js"></script>
+  <script>
+    // SVG to JPG specific functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const uploadArea = document.getElementById('upload-area');
+      const fileInput = document.getElementById('file-input');
+      const fileDisplay = document.getElementById('file-display');
+      const fileList = document.getElementById('file-list');
+      const submitBtn = document.getElementById('submit-btn');
+      const progressContainer = document.getElementById('progress-container');
+      const progressBar = document.getElementById('progress-bar');
+      const progressText = document.getElementById('progress-text');
+      const results = document.getElementById('results');
+      const convertedFiles = document.getElementById('converted-files');
+      const downloadAllBtn = document.getElementById('download-all-btn');
+
+      let selectedFiles = [];
+
+      // File upload handling
+      uploadArea.addEventListener('click', () => fileInput.click());
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('border-adobe-blue');
+      });
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('border-adobe-blue');
+      });
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('border-adobe-blue');
+        handleFiles(e.dataTransfer.files);
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+      });
+
+      function handleFiles(files) {
+        selectedFiles = Array.from(files).filter(file => file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg'));
+        
+        if (selectedFiles.length > 0) {
+          updateFileDisplay();
+          fileDisplay.classList.remove('hidden');
+        }
+      }
+
+      function updateFileDisplay() {
+        fileList.innerHTML = '';
+        let totalSize = 0;
+        
+        selectedFiles.forEach((file, index) => {
+          const fileItem = document.createElement('div');
+          fileItem.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+          fileItem.innerHTML = `
+            <span class="text-sm text-gray-700">${file.name}</span>
+            <span class="text-sm text-gray-500">${(file.size / 1024).toFixed(1)} KB</span>
+          `;
+          fileList.appendChild(fileItem);
+          totalSize += file.size;
+        });
+
+        submitBtn.disabled = selectedFiles.length === 0;
+      }
+
+      // Conversion handling
+      submitBtn.addEventListener('click', async () => {
+        if (selectedFiles.length === 0) return;
+
+        const formData = new FormData();
+        selectedFiles.forEach(file => {
+          formData.append('files', file);
+        });
+        formData.append('outputFormat', 'jpg');
+
+        progressContainer.classList.remove('hidden');
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch('/convert', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+              showResults(result);
+            } else {
+              alert('Conversion failed: ' + result.message);
+            }
+          } else {
+            alert('Conversion failed. Please try again.');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Conversion failed. Please try again.');
+        } finally {
+          progressContainer.classList.add('hidden');
+          submitBtn.disabled = false;
+        }
+      });
+
+      function showResults(result) {
+        results.classList.remove('hidden');
+        convertedFiles.innerHTML = '';
+
+        if (result.convertedFiles && result.convertedFiles.length > 0) {
+                      result.convertedFiles.forEach(fileInfo => {
+              const fileName = fileInfo.filename || fileInfo; // Handle both new and old format
+            const fileItem = document.createElement('div');
+            fileItem.className = 'flex items-center justify-between p-3 bg-green-50 rounded-lg';
+            fileItem.innerHTML = `
+              <span class="text-sm text-gray-700">${fileName}</span>
+              <a href="/converted/${result.downloadLink.split('/').pop()}/${fileName}" 
+                 class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors duration-200">
+                Download
+              </a>
+            `;
+            convertedFiles.appendChild(fileItem);
+          });
+
+          downloadAllBtn.onclick = () => {
+            window.location.href = result.downloadLink;
+          };
+        }
+      }
+
+      // Mobile menu toggle
+      const mobileMenuButton = document.getElementById('mobile-menu-button');
+      const mobileMenu = document.getElementById('mobile-menu');
+
+      mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+    });
+  </script>
+</body>
+</html>

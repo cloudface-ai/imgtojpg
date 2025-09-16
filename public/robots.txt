@@ -1,0 +1,68 @@
+User-agent: *
+Allow: /
+
+# Main service pages - Allow full crawling
+Allow: /index.html
+Allow: /heic-to-jpg.html
+Allow: /png-to-jpg.html
+Allow: /webp-to-jpg.html
+Allow: /tiff-to-jpg.html
+Allow: /camera-raw-converter.html
+Allow: /svg-to-jpg.html
+
+# Content and support pages
+Allow: /blog.html
+Allow: /about.html
+Allow: /contact.html
+Allow: /help-center.html
+Allow: /privacy-policy.html
+Allow: /terms-of-use.html
+
+# Static assets - Allow crawling for better indexing
+Allow: /style.css
+Allow: /script.js
+Allow: /favicon.ico
+
+# Disallow crawling of admin, system, and temporary files
+Disallow: /admin-login.html
+Disallow: /admin/
+Disallow: /uploads/
+Disallow: /converted/
+Disallow: /jobs/
+Disallow: /server.js
+Disallow: /package.json
+Disallow: /package-lock.json
+Disallow: /node_modules/
+Disallow: /.git/
+Disallow: /.DS_Store
+
+# Sitemap location
+Sitemap: https://imgtojpg.org/sitemap.xml
+
+# Canonical URLs - Help search engines understand preferred URLs
+# Primary domain: https://imgtojpg.org
+# Avoid: www.imgtojpg.org, http://imgtojpg.org
+
+# Crawl delay to prevent overwhelming the server
+Crawl-delay: 1
+
+# Additional SEO directives
+# Allow Google to index and cache your pages
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# Allow Bing to index your pages
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Allow social media crawlers
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /

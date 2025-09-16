@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blog Post Management Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- Navigation -->
+  <nav class="bg-white shadow-sm border-b">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center">
+          <h1 class="text-xl font-semibold text-gray-900">Blog Post Dashboard</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+          <a href="/" class="text-gray-500 hover:text-gray-700">← Back to Site</a>
+          <a href="/blog.html" target="_blank" class="text-blue-600 hover:text-blue-800">View Blog</a>
+          <button 
+            id="logoutBtn"
+            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+          >
+            🚪 Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Left Column: Post Editor -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-sm border">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Create New Post</h2>
+          </div>
+          
+          <div class="p-6 space-y-6">
+            <!-- Post Title -->
+            <div>
+              <label for="postTitle" class="block text-sm font-medium text-gray-700 mb-2">
+                Post Title
+              </label>
+              <input 
+                type="text" 
+                id="postTitle" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter your post title..."
+              >
+            </div>
+
+            <!-- Post Excerpt -->
+            <div>
+              <label for="postExcerpt" class="block text-sm font-medium text-gray-700 mb-2">
+                Post Excerpt (Brief description)
+              </label>
+              <textarea 
+                id="postExcerpt" 
+                rows="3"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Brief description of your post..."
+              ></textarea>
+            </div>
+
+            <!-- Tags -->
+            <div>
+              <label for="postTags" class="block text-sm font-medium text-gray-700 mb-2">
+                Tags (comma separated)
+              </label>
+              <input 
+                type="text" 
+                id="postTags" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="tag1, tag2, tag3..."
+              >
+            </div>
+
+            <!-- Rich Text Editor -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Post Content
+              </label>
+              <div id="editor" class="h-96 border border-gray-300 rounded-md"></div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex space-x-4 pt-4">
+              <button 
+                id="testBtn"
+                class="px-6 py-2 border border-green-300 rounded-md text-green-700 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                🧪 Test Preview
+              </button>
+              <button 
+                id="previewBtn"
+                class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                Preview Post
+              </button>
+              <button 
+                id="publishBtn"
+                class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                📝 Publish to Blog
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Post Management & Preview -->
+      <div class="space-y-6">
+        
+        <!-- Post Preview -->
+        <div class="bg-white rounded-lg shadow-sm border">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Post Preview</h3>
+          </div>
+          <div class="p-6">
+            <div id="postPreview" class="prose prose-sm max-w-none">
+              <p class="text-gray-500 text-center">Preview will appear here...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-lg shadow-sm border">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
+          </div>
+          <div class="p-6 space-y-3">
+            <button 
+              id="clearFormBtn"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Clear Form
+            </button>
+            <button 
+              id="loadTemplateBtn"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Load Template
+            </button>
+          </div>
+        </div>
+
+        <!-- Post Stats -->
+        <div class="bg-white rounded-lg shadow-sm border">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Post Stats</h3>
+          </div>
+          <div class="p-6 space-y-3">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Word Count:</span>
+              <span id="wordCount" class="font-medium">0</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Character Count:</span>
+              <span id="charCount" class="font-medium">0</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Reading Time:</span>
+              <span id="readingTime" class="font-medium">0 min</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Preview Modal -->
+  <div id="previewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <h3 class="text-lg font-medium text-gray-900">Post Preview</h3>
+          <button id="closePreviewBtn" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="p-6">
+          <div id="modalPreview" class="prose prose-lg max-w-none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div id="messageContainer" class="fixed top-4 right-4 z-50 hidden">
+    <div id="messageContent" class="px-6 py-4 rounded-md shadow-lg"></div>
+  </div>
+
+  <script>
+    // Initialize Quill editor
+    const quill = new Quill('#editor', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          [{ 'header': [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          [{ 'color': [] }, { 'background': [] }],
+          ['link', 'image'],
+          ['clean']
+        ]
+      },
+      placeholder: 'Start writing your blog post...'
+    });
+
+    // Test Quill initialization
+    console.log('Quill editor initialized:', quill);
+    console.log('Quill root element:', quill.root);
+
+    // Elements
+    const postTitle = document.getElementById('postTitle');
+    const postExcerpt = document.getElementById('postExcerpt');
+    const postTags = document.getElementById('postTags');
+    const postPreview = document.getElementById('postPreview');
+    const modalPreview = document.getElementById('modalPreview');
+    const previewModal = document.getElementById('previewModal');
+    const wordCount = document.getElementById('wordCount');
+    const charCount = document.getElementById('charCount');
+    const readingTime = document.getElementById('readingTime');
+
+    // Debug: Check if elements are found
+    console.log('Elements found:', {
+      postTitle: !!postTitle,
+      postExcerpt: !!postExcerpt,
+      postTags: !!postTags,
+      postPreview: !!postPreview,
+      modalPreview: !!modalPreview,
+      previewModal: !!previewModal
+    });
+
+    // Update stats as user types
+    function updateStats() {
+      const content = quill.getText();
+      const words = content.trim().split(/\s+/).filter(word => word.length > 0);
+      const chars = content.length;
+      const readingTimeMinutes = Math.ceil(words.length / 200); // Average reading speed
+
+      wordCount.textContent = words.length;
+      charCount.textContent = chars;
+      readingTime.textContent = `${readingTimeMinutes} min`;
+    }
+
+    quill.on('text-change', updateStats);
+
+    // Test button functionality
+    document.getElementById('testBtn').addEventListener('click', () => {
+      console.log('Test button clicked'); // Debug log
+      
+      // Test basic functionality
+      const testHTML = `
+        <article class="mb-8 pb-8 border-b border-gray-200">
+          <h2 class="text-2xl font-bold text-gray-900 mb-3">🧪 Test Post</h2>
+          <p class="text-gray-600 mb-4 italic">This is a test post to verify preview functionality</p>
+          <div class="prose prose-lg max-w-none">
+            <p>This is a <strong>test paragraph</strong> with some <em>formatted text</em>.</p>
+            <ul>
+              <li>Test list item 1</li>
+              <li>Test list item 2</li>
+              <li>Test list item 3</li>
+            </ul>
+          </div>
+          <div class="mt-4"><span class="text-sm text-gray-500">Tags: test, preview, debug</span></div>
+        </article>
+      `;
+
+      // Update both preview areas
+      if (postPreview) {
+        postPreview.innerHTML = testHTML;
+        console.log('Test preview updated in side panel'); // Debug log
+      } else {
+        console.error('postPreview element not found!'); // Debug log
+      }
+      
+      if (modalPreview) {
+        modalPreview.innerHTML = testHTML;
+        console.log('Test preview updated in modal'); // Debug log
+      } else {
+        console.error('modalPreview element not found!'); // Debug log
+      }
+      
+      if (previewModal) {
+        previewModal.classList.remove('hidden');
+        console.log('Test modal shown'); // Debug log
+      } else {
+        console.error('previewModal element not found!'); // Debug log
+      }
+      
+      showMessage('Test preview loaded! Check console for debug info.', 'success');
+    });
+
+    // Preview functionality
+    document.getElementById('previewBtn').addEventListener('click', () => {
+      console.log('Preview button clicked'); // Debug log
+      
+      const title = postTitle.value || 'Untitled Post';
+      const excerpt = postExcerpt.value || 'No excerpt provided';
+      const tags = postTags.value || '';
+      const content = quill.root.innerHTML || '<p>No content yet...</p>';
+
+      console.log('Preview data:', { title, excerpt, tags, content }); // Debug log
+
+      const previewHTML = `
+        <article class="mb-8 pb-8 border-b border-gray-200">
+          <h2 class="text-2xl font-bold text-gray-900 mb-3">${title}</h2>
+          ${excerpt ? `<p class="text-gray-600 mb-4 italic">${excerpt}</p>` : ''}
+          <div class="prose prose-lg max-w-none">${content}</div>
+          ${tags ? `<div class="mt-4"><span class="text-sm text-gray-500">Tags: ${tags}</span></div>` : ''}
+        </article>
+      `;
+
+      // Update both preview areas
+      if (postPreview) {
+        postPreview.innerHTML = previewHTML;
+        console.log('Side preview updated'); // Debug log
+      } else {
+        console.error('postPreview element not found!'); // Debug log
+      }
+      
+      if (modalPreview) {
+        modalPreview.innerHTML = previewHTML;
+        console.log('Modal preview updated'); // Debug log
+      } else {
+        console.error('modalPreview element not found!'); // Debug log
+      }
+      
+      if (previewModal) {
+        previewModal.classList.remove('hidden');
+        console.log('Modal shown'); // Debug log
+      } else {
+        console.error('previewModal element not found!'); // Debug log
+      }
+      
+      console.log('Preview updated:', previewHTML); // Debug log
+    });
+
+    // Close preview modal
+    document.getElementById('closePreviewBtn').addEventListener('click', () => {
+      if (previewModal) {
+        previewModal.classList.add('hidden');
+        console.log('Modal hidden'); // Debug log
+      }
+    });
+
+    // Publish functionality
+    document.getElementById('publishBtn').addEventListener('click', async () => {
+      console.log('Publish button clicked'); // Debug log
+      
+      const title = postTitle.value.trim();
+      const excerpt = postExcerpt.value.trim();
+      const tags = postTags.value.trim();
+      const content = quill.root.innerHTML;
+
+      console.log('Publish data:', { title, excerpt, tags, content }); // Debug log
+
+      if (!title) {
+        showMessage('Please enter a post title', 'error');
+        return;
+      }
+
+      if (!content || content === '<p><br></p>') {
+        showMessage('Please enter some content', 'error');
+        return;
+      }
+
+      try {
+        const postData = {
+          title,
+          excerpt,
+          tags,
+          content,
+          date: new Date().toISOString()
+        };
+
+        const postHTML = `
+        <article class="mb-8 pb-8 border-b border-gray-200">
+          <h2 class="text-2xl font-bold text-gray-900 mb-3">${title}</h2>
+          ${excerpt ? `<p class="text-gray-600 mb-4 italic">${excerpt}</p>` : ''}
+          <div class="prose prose-lg max-w-none">${content}</div>
+          ${tags ? `<div class="mt-4"><span class="text-sm text-gray-500">Tags: ${tags}</span></div>` : ''}
+          <p class="text-sm text-gray-500 mt-4">Published on ${new Date().toLocaleDateString()}</p>
+        </article>
+        `;
+
+        console.log('Sending post data:', { postData, postHTML }); // Debug log
+
+        // Get admin token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const adminToken = urlParams.get('adminToken');
+
+        if (!adminToken) {
+          showMessage('Admin token missing. Please login again.', 'error');
+          return;
+        }
+
+        const response = await fetch('/api/update-blog', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'admin-token': adminToken
+          },
+          body: JSON.stringify({ postData, postHTML })
+        });
+
+        const result = await response.json();
+        console.log('Server response:', result); // Debug log
+
+        if (result.success) {
+          showMessage('Post published successfully!', 'success');
+          clearForm();
+        } else {
+          showMessage('Error publishing post: ' + result.message, 'error');
+        }
+      } catch (error) {
+        console.error('Publish error:', error); // Debug log
+        showMessage('Error publishing post: ' + error.message, 'error');
+      }
+    });
+
+    // Clear form
+    document.getElementById('clearFormBtn').addEventListener('click', clearForm);
+
+    // Load template
+    document.getElementById('loadTemplateBtn').addEventListener('click', () => {
+      postTitle.value = 'Sample Blog Post Title';
+      postExcerpt.value = 'This is a sample excerpt for your blog post. It should be brief and engaging.';
+      postTags.value = 'sample, blog, post';
+      quill.setText('Start writing your blog post content here...\n\nYou can use the toolbar above to format your text.\n\nAdd headers, lists, and other formatting as needed.');
+    });
+
+    // Logout functionality
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      if (confirm('Are you sure you want to logout?')) {
+        window.location.href = '/admin-login.html';
+      }
+    });
+
+    function clearForm() {
+      postTitle.value = '';
+      postExcerpt.value = '';
+      postTags.value = '';
+      quill.setText('');
+    }
+
+    function showMessage(message, type) {
+      const container = document.getElementById('messageContainer');
+      const content = document.getElementById('messageContent');
+      
+      content.textContent = message;
+      content.className = `px-6 py-4 rounded-md shadow-lg ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+      }`;
+      
+      container.classList.remove('hidden');
+      
+      setTimeout(() => {
+        container.classList.add('hidden');
+      }, 5000);
+    }
+
+    // Initialize stats
+    updateStats();
+    
+    console.log('Blog dashboard initialized successfully'); // Debug log
+  </script>
+</body>
+</html>

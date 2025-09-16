@@ -1,0 +1,217 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure all base styles are loaded */
+@layer base {
+  html {
+    scroll-behavior: smooth !important;
+  }
+  
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    line-height: 1.6 !important;
+    color: #2c2c2c !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* Custom component classes */
+@layer components {
+  .adobe-gradient {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+  }
+  
+  .adobe-card {
+    background: #ffffff !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transform: translateY(0) !important;
+  }
+  
+  .adobe-card:hover {
+    transform: translateY(-8px) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
+  }
+  
+  .adobe-button {
+    background: #1473e6 !important;
+    color: white !important;
+    border-radius: 4px !important;
+    padding: 12px 24px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  
+  .adobe-button:hover {
+    background: #0d66d0 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(20, 115, 230, 0.3) !important;
+  }
+  
+  .coffee-button {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%) !important;
+    color: white !important;
+    border-radius: 8px !important;
+    padding: 12px 24px !important;
+    font-weight: 600 !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  
+  .coffee-button:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4) !important;
+  }
+  
+  .upload-area {
+    border: 2px dashed #d1d5db !important;
+    border-radius: 8px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  
+  .upload-area:hover {
+    border-color: #1473e6 !important;
+    background: rgba(20, 115, 230, 0.02) !important;
+    transform: scale(1.02) !important;
+    box-shadow: 0 4px 12px rgba(20, 115, 230, 0.15) !important;
+  }
+  
+  .upload-area:active {
+    transform: scale(0.98) !important;
+  }
+  
+  .color-accent {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  }
+  
+  .color-accent-2 {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+  }
+  
+  .color-accent-3 {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+  }
+  
+  .container-responsive {
+    width: 100% !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 1rem !important;
+  }
+  
+  @media (min-width: 640px) {
+    .container-responsive {
+      padding: 0 1.5rem !important;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .container-responsive {
+      padding: 0 2rem !important;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .container-responsive {
+      padding: 0 3rem !important;
+    }
+  }
+  
+  .grid-responsive {
+    display: grid !important;
+    gap: 1.5rem !important;
+    grid-template-columns: 1fr !important;
+  }
+  
+  @media (min-width: 640px) {
+    .grid-responsive {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 2rem !important;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .grid-responsive {
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 2rem !important;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .grid-responsive {
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 2.5rem !important;
+    }
+  }
+  
+  .hover-fade-up:hover {
+    animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+  }
+  
+  .hover-slide-left:hover {
+    animation: slideInLeft 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+  }
+  
+  .hover-slide-right:hover {
+    animation: slideInRight 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+  }
+  
+  .hover-pulse:hover {
+    animation: pulse 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  }
+  
+  .hover-float:hover {
+    animation: float 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  }
+  
+  .hover-shake:hover {
+    animation: shake 0.6s cubic-bezier(0.36, 0, 0.66, 1) ease-in-out !important;
+  }
+  
+  .hover-bounce:hover {
+    animation: bounce 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  }
+  
+  .hover-rotate:hover {
+    animation: rotate 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  }
+  
+  /* Light animations for the three steps */
+  .step-upload {
+    animation: gentle-float 3s ease-in-out infinite !important;
+  }
+  
+  .step-convert {
+    animation: gentle-pulse 2.5s ease-in-out infinite !important;
+  }
+  
+  .step-download {
+    animation: gentle-bounce 3.5s ease-in-out infinite !important;
+  }
+  
+  @keyframes gentle-float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+  
+  @keyframes gentle-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.9; }
+  }
+  
+  @keyframes gentle-bounce {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-4px); }
+  }
+}

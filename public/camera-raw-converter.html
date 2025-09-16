@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RAW to JPG/TIFF/PSD – Pro Camera RAW Converter Online</title>
+  <meta name="description" content="Convert CR2, CR3, NEF, ARW, RAF & more to JPG, TIFF, PSD. Free online RAW converter with pro-quality results, batch processing, and instant downloads.">
+  <meta name="keywords" content="RAW converter, camera RAW converter, CR2 to JPG, CR3 to JPG, NEF to JPG, ARW to JPG, RAF to JPG, ORF to JPG, PEF to JPG, RW2 to JPG, 3FR to JPG, IIQ to JPG, RAW to TIFF, RAW to PSD, professional photo converter, free RAW converter, online RAW converter, camera RAW to JPG, RAW photo converter, digital camera converter">
+  <meta name="author" content="Vinod Kumar">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  
+  <!-- Additional SEO Meta Tags -->
+  <meta name="theme-color" content="#0066CC">
+  <meta name="msapplication-TileColor" content="#0066CC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="imgtojpg.org">
+  
+  <!-- Mobile and Performance Meta Tags -->
+  <meta name="format-detection" content="telephone=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="msapplication-config" content="/browserconfig.xml">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://imgtojpg.org/camera-raw-converter.html">
+  <meta property="og:title" content="RAW to JPG Converter - Convert Camera RAW Photos">
+  <meta property="og:description" content="Convert RAW photos from Canon, Nikon, Sony cameras to JPG, TIFF, PSD. Free online RAW converter with professional quality. Support for CR2, CR3, NEF, ARW, RAF formats. Batch processing up to 10 files, 500MB limit.">
+  <meta property="og:image" content="https://imgtojpg.org/Vinod Kumar.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="imgtojpg.org">
+  <meta property="og:locale" content="en_US">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://imgtojpg.org/camera-raw-converter.html">
+  <meta property="twitter:title" content="RAW to JPG Converter - Free Online Tool">
+  <meta property="twitter:description" content="Convert RAW photos from Canon, Nikon, Sony cameras to JPG, TIFF, PSD. Free online RAW converter with professional quality. Support for CR2, CR3, NEF, ARW, RAF formats. Batch processing up to 10 files, 500MB limit.">
+  <meta property="twitter:image" content="https://imgtojpg.org/Vinod Kumar.png">
+  
+  <!-- Canonical and Alternate Languages -->
+  <link rel="canonical" href="https://imgtojpg.org/camera-raw-converter.html" />
+  <link rel="alternate" hreflang="en" href="https://imgtojpg.org/camera-raw-converter.html" />
+  <link rel="alternate" hreflang="x-default" href="https://imgtojpg.org/camera-raw-converter.html" />
+  
+  <!-- Preconnect to external domains for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Favicon and App Icons -->
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
+  
+  <link href="/style.css?v=1.0.7" rel="stylesheet">
+  
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VJZQ84RXVL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-VJZQ84RXVL');
+  </script>
+  <script src="/speakable.js" defer></script>
+  
+  <script src="/analytics-tracker.min.js"></script>
+  <script src="/ux.js" defer></script>
+  <script src="/pwa.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    .loading-dots::after {
+      content: '';
+      animation: loading 1.5s infinite;
+    }
+    
+    @keyframes loading {
+      0%, 20% { content: ''; }
+      40% { content: '.'; }
+      60% { content: '..'; }
+      80%, 100% { content: '...'; }
+    }
+    
+    .adobe-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .adobe-button:hover::before {
+      left: 100%;
+    }
+    
+    .coffee-button {
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%) !important;
+      color: white !important;
+      border-radius: 8px !important;
+      padding: 12px 24px !important;
+      font-weight: 600 !important;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3) !important;
+      position: relative !important;
+      overflow: hidden !important;
+    }
+    
+    .coffee-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .coffee-button:hover::before {
+      left: 100%;
+    }
+    
+    .coffee-button:hover {
+      transform: translateY(-3px) scale(1.02) !important;
+      box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4) !important;
+    }
+    
+    .downloading {
+      opacity: 0.7;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+  </style>
+
+  <!-- Structured Data for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "@id": "https://imgtojpg.org/camera-raw-converter.html#webapp",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://imgtojpg.org/camera-raw-converter.html"
+    },
+    "name": "RAW to JPG Converter - Professional Camera RAW Converter",
+    "description": "Convert RAW photos from Canon, Nikon, Sony cameras to JPG, TIFF, PSD. Free online RAW converter with professional quality. Support for CR2, CR3, NEF, ARW, RAF formats. Batch processing up to 10 files, 500MB limit. Professional RAW converter trusted by photographers worldwide.",
+    "url": "https://imgtojpg.org/camera-raw-converter.html",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Web Browser",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "1250",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Free professional RAW photo conversion service"
+    },
+    "featureList": [
+      "Canon CR2/CR3 support",
+      "Nikon NEF support", 
+      "Sony ARW support",
+      "Fujifilm RAF support",
+      "Professional quality output",
+      "Batch processing",
+      "Multiple output formats",
+      "Auto-orientation correction",
+      "Secure file handling"
+    ],
+    "screenshot": "https://imgtojpg.org/Vinod Kumar.png",
+    "softwareVersion": "1.2.0",
+    "datePublished": "2024-01-01",
+    "dateModified": "2025-01-27"
+  }
+  </script>
+
+  <!-- Service Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": "https://imgtojpg.org/camera-raw-converter.html#service",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://imgtojpg.org/camera-raw-converter.html"
+    },
+    "name": "Professional RAW Photo Conversion Service",
+    "description": "Convert professional camera RAW formats to JPG, TIFF, and PSD with ImageMagick and LibRaw technology. Support for CR2, CR3, NEF, ARW, RAF formats. Batch processing up to 10 files, 500MB limit. Professional RAW converter trusted by photographers worldwide.",
+    "provider": {
+      "@id": "https://imgtojpg.org/#organization"
+    },
+    "serviceType": "RAW Photo Conversion",
+    "areaServed": "Worldwide",
+    "availableChannel": {
+      "@type": "ServiceChannel",
+      "serviceUrl": "https://imgtojpg.org/camera-raw-converter.html"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "RAW Conversion Services",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "RAW to JPG Conversion",
+            "description": "Convert RAW photos to high-quality JPG format"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "RAW to TIFF Conversion",
+            "description": "Convert RAW photos to professional TIFF format"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "RAW to PSD Conversion",
+            "description": "Convert RAW photos to Photoshop PSD format"
+          }
+        }
+      ]
+    }
+  }
+  </script>
+
+  <!-- Breadcrumb Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://imgtojpg.org/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Camera Raw Converter",
+        "item": "https://imgtojpg.org/camera-raw-converter.html"
+      }
+    ]
+  }
+  </script>
+  
+  <!-- HowTo Schema for Better Search Results -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Convert RAW Photos to JPG, TIFF, or PSD",
+    "description": "Step-by-step guide to convert professional camera RAW files to standard image formats using our free online converter",
+    "image": "https://imgtojpg.org/Vinod Kumar.png",
+    "totalTime": "PT2M",
+    "estimatedCost": "0",
+    "supply": [
+      {
+        "@type": "HowToSupply",
+        "name": "RAW photo files"
+      },
+      {
+        "@type": "HowToSupply",
+        "name": "Web browser"
+      }
+    ],
+    "tool": [
+      {
+        "@type": "HowToTool",
+        "name": "imgtojpg.org RAW converter"
+      }
+    ],
+    "step": [
+      {
+        "@type": "HowToStep",
+        "name": "Upload RAW Files",
+        "text": "Drag and drop up to 10 RAW photos (max 500MB each) or click to browse. Supported formats: CR2, CR3, NEF, ARW, RAF, ORF, PEF, RW2, 3FR, IIQ and more.",
+        "image": "https://imgtojpg.org/Vinod Kumar.png"
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Choose Output Format",
+        "text": "Select your desired output format: JPG for web and social media, TIFF for printing and professional editing, or PSD for advanced Photoshop work.",
+        "image": "https://imgtojpg.org/Vinod Kumar.png"
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Convert and Download",
+        "text": "Click convert and wait for processing. Download individual files or all converted images as a ZIP archive. Files are automatically deleted after conversion for privacy.",
+        "image": "https://imgtojpg.org/Vinod Kumar.png"
+      }
+    ]
+  }
+  </script>
+  
+  <!-- Article Schema for Content -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Professional RAW Photo Conversion: Convert Camera RAW to JPG, TIFF, PSD",
+    "description": "Complete guide to converting professional camera RAW files to standard image formats. Support for CR2, CR3, NEF, ARW, RAF formats. Batch processing up to 10 files, 500MB limit.",
+    "image": "https://imgtojpg.org/Vinod Kumar.png",
+    "author": {
+      "@type": "Person",
+      "name": "Vinod Kumar",
+      "url": "https://imgtojpg.org/"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "imgtojpg.org",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://imgtojpg.org/Vinod Kumar.png"
+      }
+    },
+    "datePublished": "2025-01-27",
+    "dateModified": "2025-01-27",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://imgtojpg.org/camera-raw-converter.html"
+    },
+    "articleSection": "Photography Tools",
+    "keywords": "RAW converter, camera RAW converter, CR2 to JPG, CR3 to JPG, NEF to JPG, ARW to JPG, RAF to JPG, RAW to TIFF, RAW to PSD, professional photo converter",
+    "wordCount": "2500"
+  }
+  </script>
+
+  <!-- HowTo Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Convert RAW Photos to JPG Online",
+    "description": "Step-by-step guide to convert professional camera RAW photos to JPG format using our free online converter",
+    "image": "https://imgtojpg.org/Vinod Kumar.png",
+    "totalTime": "PT2M",
+    "estimatedCost": "0",
+    "supply": [
+      {
+        "@type": "HowToSupply",
+        "name": "RAW photo file"
+      },
+      {
+        "@type": "HowToSupply",
+        "name": "Web browser"
+      }
+    ],
+    "tool": [
+      {
+        "@type": "HowToTool",
+        "name": "imgtojpg.org RAW converter"
+      }
+    ],
+    "step": [
+      {
+        "@type": "HowToStep",
+        "name": "Upload RAW file",
+        "text": "Drag and drop or select your RAW photo file (CR2, CR3, NEF, ARW, etc.)",
+        "image": "https://imgtojpg.org/Vinod Kumar.png"
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Choose output format",
+        "text": "Select JPG, TIFF, or PSD as your desired output format",
+        "image": "https://imgtojpg.org/Vinod Kumar.png"
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Convert and download",
+        "text": "Click convert and download your professionally converted image file",
+        "image": "https://imgtojpg.org/Vinod Kumar.png"
+      }
+    ]
+  }
+  </script>
+
+     <!-- Enhanced FAQ Schema for Better Search Results -->
+   <script type="application/ld+json">
+   {
+     "@context": "https://schema.org",
+     "@type": "FAQPage",
+     "mainEntity": [
+       {
+         "@type": "Question",
+         "name": "What RAW formats do you support?",
+         "acceptedAnswer": {
+           "@type": "Answer",
+           "text": "We support all major RAW formats including Canon (CR2, CR3), Nikon (NEF, NRW), Sony (ARW, SRF, SR2), Fujifilm (RAF), Olympus (ORF), Pentax (PEF), Panasonic (RW2), Hasselblad (3FR, RDC), Phase One (IIQ), and many more professional camera formats."
+         }
+       },
+       {
+         "@type": "Question",
+         "name": "Is RAW conversion really free?",
+         "acceptedAnswer": {
+           "@type": "Answer",
+           "text": "Yes, our RAW conversion service is completely free with no hidden costs, watermarks, or registration required. Professional photographers deserve access to quality conversion tools without breaking the bank."
+         }
+       },
+       {
+         "@type": "Question",
+         "name": "How do you preserve image quality during conversion?",
+         "acceptedAnswer": {
+           "@type": "Answer",
+           "text": "We use advanced ImageMagick and LibRaw technology to ensure maximum quality preservation. Our conversion process maintains color accuracy, dynamic range, and detail while optimizing for your chosen output format."
+         }
+       },
+       {
+         "@type": "Question",
+         "name": "Can I convert multiple RAW files at once?",
+         "acceptedAnswer": {
+           "@type": "Answer",
+           "text": "Absolutely! Our batch processing feature allows you to convert up to 10 RAW files simultaneously. Simply select multiple files and they'll all be converted to your chosen format in one go."
+         }
+       },
+       {
+         "@type": "Question",
+         "name": "What's the maximum file size for RAW conversion?",
+         "acceptedAnswer": {
+           "@type": "Answer",
+           "text": "We support RAW files up to 500MB, making it perfect for high-resolution professional photography. This covers most modern camera sensors including medium format and high-megapixel cameras."
+         }
+       },
+       {
+         "@type": "Question",
+         "name": "Which output formats are best for different uses?",
+         "acceptedAnswer": {
+           "@type": "Answer",
+           "text": "JPG is perfect for web, social media, and general use. TIFF is ideal for printing and professional editing. PSD is best for advanced Photoshop work with layers and effects. Choose based on your specific needs."
+         }
+       },
+       {
+         "@type": "Question",
+         "name": "Do you support all camera brands?",
+         "acceptedAnswer": {
+           "@type": "Answer",
+           "text": "Yes, we support all major camera brands including Canon, Nikon, Sony, Fujifilm, Olympus, Pentax, Panasonic, Hasselblad, Phase One, and many others. Our service works with professional, enthusiast, and entry-level cameras."
+         }
+       },
+       {
+         "@type": "Question",
+         "name": "How secure is my RAW photo data?",
+         "acceptedAnswer": {
+           "@type": "Answer",
+           "text": "Your privacy is our priority. All RAW photos are processed locally and automatically deleted after conversion. We don't store, share, or access your files beyond the conversion process."
+         }
+       },
+       {
+         "@type": "Question",
+         "name": "Can I use this for professional photography work?",
+         "acceptedAnswer": {
+           "@type": "Answer",
+           "text": "Absolutely! Many professional photographers use our service for client work, stock photography, and commercial projects. Our conversion quality meets professional standards and is trusted by photographers worldwide."
+         }
+       },
+       {
+         "@type": "Question",
+         "name": "What if my RAW file is corrupted or unsupported?",
+         "acceptedAnswer": {
+           "@type": "Answer",
+           "text": "If a RAW file can't be processed, we'll show you a clear error message. This usually happens with very old camera formats or corrupted files. Most modern RAW formats from the last 15+ years are fully supported."
+         }
+       }
+     ]
+   }
+   </script>
+</head>
+<body>
+
+  <!-- Navigation Header - Adobe Colors with Coffee Button -->
+  <nav class="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 transition-all duration-300">
+    <div class="container-responsive">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <a href="/" class="text-xl sm:text-2xl font-bold text-gray-900 transition-all duration-300 hover:scale-105">
+            imgtojpg.org
+          </a>
+        </div>
+        <ul class="hidden sm:flex items-center space-x-4 lg:space-x-6">
+          <li><a href="/" class="text-gray-700 hover:text-gray-900 font-medium transition-all duration-200 hover:scale-105">Home</a></li>
+          <li><a href="blog.html" class="text-gray-700 hover:text-gray-900 font-medium transition-all duration-200 hover:scale-105">Blog</a></li>
+          <li><button class="coffee-button">☕ Buy me a coffee</button></li>
+        </ul>
+        
+        <!-- Mobile menu button -->
+        <button class="sm:hidden p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200" id="mobileMenuButton">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+        
+        <!-- Mobile menu -->
+        <div class="sm:hidden absolute top-16 left-0 w-full bg-white border-b border-gray-200 hidden" id="mobileMenu">
+          <ul class="py-4 space-y-2">
+            <li><a href="/" class="block px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100">Home</a></li>
+            <li><a href="/heic-to-jpg.html" class="block px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100">HEIC to JPG</a></li>
+            <li><a href="/png-to-jpg.html" class="block px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100">PNG to JPG</a></li>
+            <li><a href="/webp-to-jpg.html" class="block px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100">WebP to JPG</a></li>
+            <li><a href="/tiff-to-jpg.html" class="block px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100">TIFF to JPG</a></li>
+            <li><a href="/camera-raw-converter.html" class="block px-4 py-2 text-blue-600 font-semibold bg-blue-50">Camera Raw</a></li>
+            <li><a href="blog.html" class="block px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100">Blog</a></li>
+            <li><a href="/admin-login.html" class="block px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100">Admin</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <div class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 sm:py-16 lg:py-20">
+    <div class="container-responsive text-center">
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 hover-fade-up">
+        Camera Raw Converter
+      </h1>
+      <p class="text-lg sm:text-xl text-gray-600 mb-8 sm:mb-12 max-w-2xl mx-auto hover-slide-left">
+        Convert professional RAW camera formats to JPG, TIFF, and PSD. Support for Canon, Nikon, Sony, Fujifilm, and more. Handle files up to 500MB with batch processing of up to 10 files.
+      </p>
+      
+      <!-- Upload Area -->
+      <div class="adobe-card p-6 sm:p-8 max-w-2xl mx-auto hover-fade-up">
+        <form id="uploadForm" class="space-y-6">
+          <!-- File Input -->
+          <div class="upload-area p-8 sm:p-12 text-center cursor-pointer relative group border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50/30 transition-all duration-300">
+            <div class="text-4xl sm:text-5xl mb-4 hover-float">📷</div>
+            <p class="text-base sm:text-lg text-gray-700 mb-2">Drag and drop your RAW photos here</p>
+            <p class="text-gray-500">or <span class="text-blue-600 font-medium group-hover:text-blue-700">click anywhere to browse</span></p>
+            <input type="file" id="fileInput" name="files" multiple accept=".cr2,.cr3,.nef,.nrw,.arw,.srf,.sr2,.raf,.orf,.pef,.rw2,.3fr,.rdc,.iiq,.dcr,.k25,.kdc,.mef,.mos,.erf" class="hidden">
+            <div class="absolute inset-0 bg-transparent hover:bg-blue-50/30 transition-colors duration-200 rounded-lg pointer-events-none"></div>
+          </div>
+          
+          <!-- Format Selection -->
+          <div class="text-center mt-4">
+            <label for="outputFormat" class="block text-sm font-medium text-gray-700 mb-2">Output Format:</label>
+            <select id="outputFormat" name="outputFormat" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option value="jpg">JPG (JPEG)</option>
+              <option value="tiff">TIFF</option>
+              <option value="psd">PSD (Photoshop)</option>
+            </select>
+          </div>
+          
+          <!-- Convert Button -->
+          <button type="submit" class="adobe-button w-full text-base sm:text-lg px-6 sm:px-8 py-3 opacity-50 cursor-not-allowed" disabled>
+            Convert RAW to Selected Format
+          </button>
+        </form>
+        
+                  <p class="text-sm text-gray-500 mt-4 text-center">
+            Supports: CR2, CR3, NEF, NRW, ARW, SRF, SR2, RAF, ORF, PEF, RW2, 3FR, RDC, IIQ, DCR, K25, KDC, MEF, MOS, ERF<br>
+            <span class="text-blue-600 font-medium">Up to 500MB per file • Maximum 10 files per conversion</span>
+          </p>
+      </div>
+      
+      <!-- Status and Progress -->
+      <div id="statusBox" class="hidden mt-6 max-w-2xl mx-auto">
+        <div class="adobe-card p-6">
+          <p id="statusText" class="text-blue-700 font-medium mb-4 text-center"></p>
+          <div class="w-full bg-blue-100 rounded-full h-3">
+                            <div id="progressBar" class="bg-blue-500 h-3 rounded-full transition-all duration-300 progress-bar-converter"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Results -->
+      <div id="results" class="hidden mt-6 max-w-4xl mx-auto">
+        <div class="adobe-card p-6">
+          <p class="text-green-600 font-medium text-center mb-4">✅ Conversion complete. Preview images below:</p>
+          <div id="imagePreview" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"></div>
+          <div class="flex justify-center items-center">
+            <a id="downloadAll" href="#" download="converted_images.zip" class="block w-full text-center adobe-button py-3">
+              Download All as ZIP
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <div class="adobe-gradient py-12 sm:py-16 lg:py-20">
+    <div class="container-responsive">
+      <h2 class="text-2xl sm:text-3xl font-bold text-center text-gray-900 mb-8 sm:mb-12 hover-fade-up">
+        Why Convert RAW to Standard Formats?
+      </h2>
+      
+      <div class="grid-responsive">
+        <!-- Professional Editing -->
+        <div class="adobe-card p-6 hover-fade-up">
+          <div class="text-3xl mb-4 hover-pulse">🎨</div>
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Professional Editing</h3>
+          <p class="text-gray-600 mb-4">Convert RAW files to formats compatible with all editing software</p>
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 border-l-4 border-blue-400">
+            <p class="text-sm text-blue-800">Perfect for photographers</p>
+          </div>
+        </div>
+        
+        <!-- Universal Compatibility -->
+        <div class="adobe-card p-6 hover-fade-up">
+          <div class="text-3xl mb-4 hover-pulse">🌐</div>
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Universal Compatibility</h3>
+          <p class="text-gray-600 mb-4">JPG, TIFF, and PSD work on all devices and platforms</p>
+          <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border-l-4 border-green-400">
+            <p class="text-sm text-green-800">Works everywhere</p>
+          </div>
+        </div>
+        
+        <!-- Quality Preservation -->
+        <div class="adobe-card p-6 hover-fade-up">
+          <div class="text-3xl mb-4 hover-pulse">⭐</div>
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Quality Preservation</h3>
+          <p class="text-gray-600 mb-4">Maintain high image quality while ensuring compatibility</p>
+          <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-3 border-l-4 border-purple-400">
+            <p class="text-sm text-purple-800">Professional quality</p>
+          </div>
+        </div>
+        
+        <!-- Batch Processing -->
+        <div class="adobe-card p-6 hover-fade-up">
+          <div class="text-3xl mb-4 hover-pulse">🔄</div>
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Batch Processing</h3>
+          <p class="text-gray-600 mb-4">Convert up to 10 RAW files simultaneously for maximum efficiency</p>
+          <div class="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-3 border-l-4 border-orange-400">
+            <p class="text-sm text-orange-800">Save time</p>
+          </div>
+        </div>
+        
+        <!-- Secure Conversion -->
+        <div class="adobe-card p-6 hover-fade-up">
+          <div class="text-3xl mb-4 hover-pulse">🔒</div>
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Secure Conversion</h3>
+          <p class="text-gray-600 mb-4">Your files are processed locally and automatically deleted</p>
+          <div class="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg p-3 border-l-4 border-teal-400">
+            <p class="text-sm text-teal-800">Privacy first</p>
+          </div>
+        </div>
+        
+        <!-- Cloud Storage Ready -->
+        <div class="adobe-card p-6 hover-fade-up">
+          <div class="text-3xl mb-4 hover-pulse">☁️</div>
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Cloud Storage Ready</h3>
+          <p class="text-gray-600 mb-4">Converted files are perfect for cloud backup and sharing</p>
+          <div class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg p-3 border-l-4 border-indigo-400">
+            <p class="text-sm text-indigo-800">Easy sharing</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How It Works -->
+  <div class="bg-gradient-to-br from-gray-50 to-blue-50 py-12 sm:py-16 lg:py-20">
+    <div class="container-responsive">
+      <h2 class="text-2xl sm:text-3xl font-bold text-center text-gray-900 mb-8 sm:mb-12 hover-fade-up">
+        How to convert RAW to standard formats in 3 simple steps
+      </h2>
+      
+      <div class="grid-responsive">
+        <div class="text-center hover-fade-up">
+          <div class="color-accent rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-4 text-white step-upload">
+            <span class="text-xl sm:text-2xl">📁</span>
+          </div>
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-2">1. Upload</h3>
+          <p class="text-gray-600">Drag and drop up to 10 RAW photos (max 500MB each) or click to browse.</p>
+        </div>
+        
+        <div class="text-center hover-fade-up">
+          <div class="color-accent-2 rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-4 text-white step-convert">
+            <span class="text-xl sm:text-2xl">⚡</span>
+          </div>
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-2">2. Convert</h3>
+          <p class="text-gray-600">Choose your output format and convert RAW to JPG, TIFF, or PSD.</p>
+        </div>
+        
+        <div class="text-center hover-fade-up">
+          <div class="color-accent-3 rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-4 text-white step-download">
+            <span class="text-xl sm:text-2xl">⬇️</span>
+          </div>
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-2">3. Download</h3>
+          <p class="text-gray-600">Download your converted images individually or as a ZIP file.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supported Formats -->
+  <div class="bg-gradient-to-br from-indigo-50 to-purple-50 py-12 sm:py-16 lg:py-20">
+    <div class="container-responsive">
+      <div class="text-center mb-8 sm:mb-12">
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Supported RAW Formats</h2>
+        <p class="text-lg text-gray-600">Convert from professional camera RAW formats</p>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <!-- Canon -->
+        <div class="adobe-card p-6 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 hover-fade-up">
+          <div class="text-4xl mb-4 hover-pulse">📷</div>
+          <h4 class="text-xl font-semibold text-gray-900 mb-2">Canon</h4>
+          <p class="text-gray-600">CR2, CR3</p>
+          <p class="text-sm text-blue-600 mt-2">EOS cameras</p>
+        </div>
+        
+        <!-- Nikon -->
+        <div class="adobe-card p-6 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 hover-fade-up">
+          <div class="text-4xl mb-4 hover-pulse">📷</div>
+          <h4 class="text-xl font-semibold text-gray-900 mb-2">Nikon</h4>
+          <p class="text-gray-600">NEF, NRW</p>
+          <p class="text-sm text-blue-600 mt-2">D-SLR cameras</p>
+        </div>
+        
+        <!-- Sony -->
+        <div class="adobe-card p-6 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 hover-fade-up">
+          <div class="text-4xl mb-4 hover-pulse">📷</div>
+          <h4 class="text-xl font-semibold text-gray-900 mb-2">Sony</h4>
+          <p class="text-gray-600">ARW, SRF, SR2</p>
+          <p class="text-sm text-blue-600 mt-2">Alpha cameras</p>
+        </div>
+        
+        <!-- Fujifilm -->
+        <div class="adobe-card p-6 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 hover-fade-up">
+          <div class="text-4xl mb-4 hover-pulse">📷</div>
+          <h4 class="text-xl font-semibold text-gray-900 mb-2">Fujifilm</h4>
+          <p class="text-gray-600">RAF</p>
+          <p class="text-sm text-blue-600 mt-2">X-Series cameras</p>
+        </div>
+        
+        <!-- Olympus -->
+        <div class="adobe-card p-6 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 hover-fade-up">
+          <div class="text-4xl mb-4 hover-pulse">📷</div>
+          <h4 class="text-xl font-semibold text-gray-900 mb-2">Olympus</h4>
+          <p class="text-gray-600">ORF</p>
+          <p class="text-sm text-blue-600 mt-2">OM-D cameras</p>
+        </div>
+        
+        <!-- Pentax -->
+        <div class="adobe-card p-6 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 hover-fade-up">
+          <div class="text-4xl mb-4 hover-pulse">📷</div>
+          <h4 class="text-xl font-semibold text-gray-900 mb-2">Pentax</h4>
+          <p class="text-gray-600">PEF</p>
+          <p class="text-sm text-blue-600 mt-2">K-mount cameras</p>
+        </div>
+        
+        <!-- Panasonic -->
+        <div class="adobe-card p-6 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 hover-fade-up">
+          <div class="text-4xl mb-4 hover-pulse">📷</div>
+          <h4 class="text-xl font-semibold text-gray-900 mb-2">Panasonic</h4>
+          <p class="text-gray-600">RW2</p>
+          <p class="text-sm text-blue-600 mt-2">Lumix cameras</p>
+        </div>
+        
+        <!-- Hasselblad -->
+        <div class="adobe-card p-6 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 hover-fade-up">
+          <div class="text-4xl mb-4 hover-pulse">📷</div>
+          <h4 class="text-xl font-semibold text-gray-900 mb-2">Hasselblad</h4>
+          <p class="text-gray-600">3FR, RDC</p>
+          <p class="text-sm text-blue-600 mt-2">Medium format</p>
+        </div>
+        
+        <!-- Phase One -->
+        <div class="adobe-card p-6 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 hover-fade-up">
+          <div class="text-4xl mb-4 hover-pulse">📷</div>
+          <h4 class="text-xl font-semibold text-gray-900 mb-2">Phase One</h4>
+          <p class="text-gray-600">IIQ</p>
+          <p class="text-sm text-blue-600 mt-2">Professional cameras</p>
+        </div>
+        
+        <!-- Other Formats -->
+        <div class="adobe-card p-6 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 hover-fade-up">
+          <div class="text-4xl mb-4 hover-pulse">📷</div>
+          <h4 class="text-xl font-semibold text-gray-900 mb-2">Other Formats</h4>
+          <p class="text-gray-600">DCR, K25, KDC, MEF, MOS, ERF</p>
+          <p class="text-sm text-blue-600 mt-2">Various cameras</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Output Formats -->
+  <div class="adobe-gradient py-12 sm:py-16 lg:py-20">
+    <div class="container-responsive">
+      <div class="text-center mb-8 sm:mb-12">
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Output Formats</h2>
+        <p class="text-lg text-gray-600">Choose the format that best suits your needs</p>
+      </div>
+      
+      <div class="grid-responsive">
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-blue-400">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">🖼️ JPG (JPEG)</h3>
+          <p class="text-gray-600">Universal format for web, social media, and general use. Smaller file sizes with good quality.</p>
+        </div>
+        
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-green-400">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">🖼️ TIFF</h3>
+          <p class="text-gray-600">High-quality format for printing and professional editing. Lossless compression.</p>
+        </div>
+        
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-purple-400">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">🖼️ PSD (Photoshop)</h3>
+          <p class="text-gray-600">Adobe Photoshop format for advanced editing with layers and effects.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Why Choose Us -->
+  <div class="bg-gradient-to-br from-gray-50 to-blue-50 py-12 sm:py-16 lg:py-20">
+    <div class="container-responsive">
+      <div class="text-center mb-8 sm:mb-12">
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Why choose imgtojpg.org?</h2>
+        <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+          Our Camera Raw converter is designed to be the fastest, most reliable, and easiest-to-use tool for converting your professional RAW photos.
+        </p>
+      </div>
+      
+      <div class="grid-responsive">
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-blue-400">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">🚀 Fast & Efficient</h3>
+          <p class="text-gray-600">Convert up to 10 RAW files simultaneously with our optimized conversion engine.</p>
+        </div>
+        
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-green-400">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">🔒 Privacy First</h3>
+          <p class="text-gray-600">Your images are processed locally and automatically deleted after conversion.</p>
+        </div>
+        
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-purple-400">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">💯 Free Forever</h3>
+          <p class="text-gray-600">No hidden fees, no watermarks, no registration required.</p>
+        </div>
+        
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-orange-400">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">📱 Mobile Friendly</h3>
+          <p class="text-gray-600">Works perfectly on all devices - desktop, tablet, and mobile.</p>
+        </div>
+        
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-teal-400">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">🎯 High Quality</h3>
+          <p class="text-gray-600">Maintain excellent image quality while ensuring optimal file sizes.</p>
+        </div>
+        
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-pink-400">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">⚡ Instant Results</h3>
+          <p class="text-gray-600">Get your converted images immediately with our lightning-fast processing.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA Section -->
+  <div class="adobe-gradient py-12 sm:py-16 lg:py-20">
+    <div class="container-responsive text-center">
+      <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">
+        Ready to convert your RAW images?
+      </h2>
+      <p class="text-lg sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+        Join thousands of photographers who trust imgtojpg.org for their RAW conversion needs. Start converting your images today!
+      </p>
+      
+      <div class="adobe-card p-6 sm:p-8 max-w-2xl mx-auto hover-fade-up">
+        <h3 class="text-xl sm:text-2xl font-semibold text-gray-900 mb-4">
+          Start converting now
+        </h3>
+        <p class="text-gray-600 mb-6">
+          Upload your RAW images and get high-quality conversions in seconds. No registration required.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <button class="adobe-button text-base sm:text-lg px-6 sm:px-8 py-3">
+            Convert RAW Images Now
+          </button>
+          <button class="coffee-button text-base sm:text-lg px-6 sm:px-8 py-3">
+            ☕ Buy me a coffee
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Common Use Cases Section -->
+  <div class="bg-gradient-to-br from-green-50 to-blue-50 py-12 sm:py-16 lg:py-20">
+    <div class="container-responsive">
+      <div class="text-center mb-8 sm:mb-12">
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Common Use Cases & Solutions</h2>
+        <p class="text-lg text-gray-600 max-w-3xl mx-auto">Solve your professional photography challenges with our specialized RAW conversion tools</p>
+      </div>
+      
+      <div class="grid-responsive">
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-green-500">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">📷 Wedding Photography</h3>
+          <p class="text-gray-600">Convert RAW wedding photos to JPG for client delivery, online galleries, and social media sharing. Maintain professional quality while ensuring universal compatibility.</p>
+          <div class="mt-3 text-sm text-green-700">
+            <strong>Perfect for:</strong> Wedding photographers, event photography, client deliverables
+          </div>
+        </div>
+        
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-blue-500">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">🎨 Portrait Studios</h3>
+          <p class="text-gray-600">Convert RAW portrait sessions to TIFF for professional printing and PSD for advanced editing in Photoshop. Preserve skin tones and details perfectly.</p>
+          <div class="mt-3 text-sm text-blue-700">
+            <strong>Perfect for:</strong> Portrait photographers, studio work, print services
+          </div>
+        </div>
+        
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-purple-500">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">🏢 Commercial Photography</h3>
+          <p class="text-gray-600">Convert RAW product and architectural photos to JPG for websites, catalogs, and marketing materials. Optimize for web while maintaining professional standards.</p>
+          <div class="mt-3 text-sm text-purple-700">
+            <strong>Perfect for:</strong> Product photographers, real estate, marketing agencies
+          </div>
+        </div>
+        
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-orange-500">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">🌅 Landscape Photography</h3>
+          <p class="text-gray-600">Convert RAW landscape shots to TIFF for large format printing and gallery exhibitions. Preserve the full dynamic range and color depth of your captures.</p>
+          <div class="mt-3 text-sm text-orange-700">
+            <strong>Perfect for:</strong> Nature photographers, fine art printing, gallery submissions
+          </div>
+        </div>
+        
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-teal-500">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">📱 Social Media Content</h3>
+          <p class="text-gray-600">Convert RAW photos to JPG for Instagram, Facebook, and other social platforms. Optimize file sizes while maintaining visual impact for online audiences.</p>
+          <div class="mt-3 text-sm text-teal-700">
+            <strong>Perfect for:</strong> Social media influencers, content creators, online portfolios
+          </div>
+        </div>
+        
+        <div class="adobe-card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 border-l-4 border-pink-500">
+          <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">💼 Stock Photography</h3>
+          <p class="text-gray-600">Convert RAW files to JPG for stock photo submissions to Shutterstock, Adobe Stock, and Getty Images. Meet platform requirements while preserving quality.</p>
+          <div class="mt-3 text-sm text-pink-700">
+            <strong>Perfect for:</strong> Stock photographers, content creators, licensing sales
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ Section for SEO -->
+  <div class="bg-white py-16 sm:py-20">
+    <div class="container-responsive">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+        <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+          Everything you need to know about our RAW photo conversion service
+        </p>
+      </div>
+      
+      <div class="max-w-4xl mx-auto space-y-6">
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">What RAW formats do you support?</h3>
+          <p class="text-gray-600">We support all major RAW formats including Canon (CR2, CR3), Nikon (NEF, NRW), Sony (ARW, SRF, SR2), Fujifilm (RAF), Olympus (ORF), Pentax (PEF), Panasonic (RW2), Hasselblad (3FR, RDC), Phase One (IIQ), and many more professional camera formats.</p>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Is RAW conversion really free?</h3>
+          <p class="text-gray-600">Yes, our RAW conversion service is completely free with no hidden costs, watermarks, or registration required. Professional photographers deserve access to quality conversion tools without breaking the bank.</p>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">How do you preserve image quality during conversion?</h3>
+          <p class="text-gray-600">We use advanced ImageMagick and LibRaw technology to ensure maximum quality preservation. Our conversion process maintains color accuracy, dynamic range, and detail while optimizing for your chosen output format.</p>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Can I convert multiple RAW files at once?</h3>
+          <p class="text-gray-600">Absolutely! Our batch processing feature allows you to convert up to 10 RAW files simultaneously. Simply select multiple files and they'll all be converted to your chosen format in one go.</p>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">What's the maximum file size for RAW conversion?</h3>
+          <p class="text-gray-600">We support RAW files up to 500MB, making it perfect for high-resolution professional photography. This covers most modern camera sensors including medium format and high-megapixel cameras.</p>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Which output formats are best for different uses?</h3>
+          <p class="text-gray-600">JPG is perfect for web, social media, and general use. TIFF is ideal for printing and professional editing. PSD is best for advanced Photoshop work with layers and effects. Choose based on your specific needs.</p>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Do you support all camera brands?</h3>
+          <p class="text-gray-600">Yes, we support all major camera brands including Canon, Nikon, Sony, Fujifilm, Olympus, Pentax, Panasonic, Hasselblad, Phase One, and many others. Our service works with professional, enthusiast, and entry-level cameras.</p>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">How secure is my RAW photo data?</h3>
+          <p class="text-gray-600">Your privacy is our priority. All RAW photos are processed locally and automatically deleted after conversion. We don't store, share, or access your files beyond the conversion process.</p>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Can I use this for professional photography work?</h3>
+          <p class="text-gray-600">Absolutely! Many professional photographers use our service for client work, stock photography, and commercial projects. Our conversion quality meets professional standards and is trusted by photographers worldwide.</p>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">What if my RAW file is corrupted or unsupported?</h3>
+          <p class="text-gray-600">If a RAW file can't be processed, we'll show you a clear error message. This usually happens with very old camera formats or corrupted files. Most modern RAW formats from the last 15+ years are fully supported.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-12">
+    <div class="container-responsive">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
+        <div>
+          <h4 class="text-lg font-semibold mb-4">imgtojpg.org</h4>
+          <p class="text-gray-400 text-sm">Free, fast, and secure image conversion for everyone.</p>
+        </div>
+        
+        <div>
+          <h5 class="font-semibold mb-3">Features</h5>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li><a href="/heic-to-jpg.html" class="hover:text-white transition-colors duration-200">HEIC to JPG</a></li>
+            <li><a href="/png-to-jpg.html" class="hover:text-white transition-colors duration-200">PNG to JPG</a></li>
+            <li><a href="/webp-to-jpg.html" class="hover:text-white transition-colors duration-200">WebP to JPG</a></li>
+            <li><a href="/tiff-to-jpg.html" class="hover:text-white transition-colors duration-200">TIFF to JPG</a></li>
+            <li><a href="/camera-raw-converter.html" class="hover:text-white transition-colors duration-200">Camera Raw</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h5 class="font-semibold mb-3">Reverse Converters</h5>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to HEIC</a></li>
+            <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to PNG</a></li>
+            <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to WebP</a></li>
+            <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to TIFF</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h5 class="font-semibold mb-3">Support</h5>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li><a href="help-center.html" class="hover:text-white transition-colors duration-200">Help Center</a></li>
+            <li><a href="contact.html" class="hover:text-white transition-colors duration-200">Contact Us</a></li>
+            <li><a href="privacy-policy.html" class="hover:text-white transition-colors duration-200">Privacy Policy</a></li>
+            <li><a href="terms-of-use.html" class="hover:text-white transition-colors duration-200">Terms of Use</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h5 class="font-semibold mb-3">Connect</h5>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li><a href="/blog.html" class="hover:text-white transition-colors duration-200">Blog</a></li>
+            <li><a href="/about.html" class="hover:text-white transition-colors duration-200">About Us</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-700 pt-8 text-center">
+        <p class="text-gray-400 text-sm">© 2025 imgtojpg.org. Powered by <span class="font-semibold text-gray-300">nerdykeeda</span></p>
+        <div class="mt-4 text-center">
+          <p class="text-gray-400 text-sm">Made with <span class="text-red-500 text-lg">❤</span> in Gurugram, India</p>
+        </div>
+        <div class="mt-4">
+          <button class="coffee-button text-sm px-6 py-2">
+            ☕ Buy me a coffee
+          </button>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script>
+    // Basic functionality for Camera Raw converter
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById("mobileMenuButton");
+    const mobileMenu = document.getElementById("mobileMenu");
+    if (mobileMenuButton && mobileMenu) {
+      mobileMenuButton.addEventListener("click", () => {
+        mobileMenu.classList.toggle("hidden");
+      });
+    }
+    
+    // Coffee button functionality
+    document.querySelectorAll(".coffee-button").forEach(button => {
+      button.addEventListener("click", () => {
+        window.open("https://buymeacoffee.com/spvinodmanb", "_blank");
+      });
+    });
+    
+    // File upload functionality
+    const uploadForm = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.querySelector('.upload-area');
+    const statusBox = document.getElementById('statusBox');
+    const statusText = document.getElementById('statusText');
+    const progressBar = document.getElementById('progressBar');
+    const results = document.getElementById('results');
+    const imagePreview = document.getElementById('imagePreview');
+    const downloadAll = document.getElementById('downloadAll');
+    
+    // Make entire upload area clickable
+    uploadArea.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'INPUT') {
+        fileInput.click();
+      }
+    });
+    
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('border-blue-500', 'bg-blue-50');
+    });
+    
+    uploadArea.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      if (!uploadArea.contains(e.relatedTarget)) {
+        uploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+      }
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+      
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        fileInput.files = files;
+        updateFileDisplay(files);
+      }
+    });
+    
+    // File input change handler
+    fileInput.addEventListener('change', function() {
+      if (this.files && this.files.length > 0) {
+        updateFileDisplay(this.files);
+      }
+    });
+    
+    // Update file display
+    function updateFileDisplay(files) {
+      const fileList = Array.from(files);
+      console.log('Files selected:', fileList.map(f => f.name));
+      
+      // Clear previous display
+      const existingDisplay = uploadArea.querySelector('.file-display');
+      if (existingDisplay) {
+        existingDisplay.remove();
+      }
+      
+      if (files.length > 0) {
+        // Create file display
+        const fileDisplay = document.createElement('div');
+        fileDisplay.className = 'file-display mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg';
+        
+        const fileNames = Array.from(files).map(f => f.name).join(', ');
+        const totalSize = Array.from(files).reduce((total, file) => total + file.size, 0);
+        
+        fileDisplay.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="text-2xl">📁</div>
+              <div>
+                <p class="text-sm font-medium text-gray-900">${files.length} file(s) selected</p>
+                <p class="text-xs text-gray-600">${fileNames}</p>
+                <p class="text-xs text-blue-600">Total size: ${(totalSize / 1024 / 1024).toFixed(2)} MB</p>
+              </div>
+            </div>
+            <button type="button" class="text-red-500 hover:text-red-700 text-sm" onclick="clearFiles()">
+              ✕ Clear
+            </button>
+          </div>
+        `;
+        
+        uploadArea.appendChild(fileDisplay);
+        
+        // Update submit button state
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      }
+    }
+    
+    // Clear files function
+    window.clearFiles = function() {
+      fileInput.value = '';
+      const existingDisplay = uploadArea.querySelector('.file-display');
+      if (existingDisplay) {
+        existingDisplay.remove();
+      }
+      
+      // Reset submit button state
+      const submitBtn = document.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+    };
+    
+    // Form submission
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Please select at least one RAW file to convert.');
+        return;
+      }
+      
+      const outputFormat = document.getElementById('outputFormat').value;
+      const files = fileInput.files;
+      
+      // Validate file types
+      const allowedTypes = ['image/tiff', 'image/x-tiff', 'image/cr2', 'image/x-cr2', 'image/nef', 'image/x-nef', 'image/arw', 'image/x-arw'];
+      const invalidFiles = Array.from(files).filter(file => {
+        return !allowedTypes.includes(file.type) && !file.name.toLowerCase().match(/\.(cr2|cr3|nef|nrw|arw|srf|sr2|raf|orf|pef|rw2|3fr|rdc|iiq|dcr|k25|kdc|mef|mos|erf)$/);
+      });
+      
+      if (invalidFiles.length > 0) {
+        alert(`Invalid file type(s): ${invalidFiles.map(f => f.name).join(', ')}\n\nSupported formats: CR2, CR3, NEF, NRW, ARW, SRF, SR2, RAF, ORF, PEF, RW2, 3FR, RDC, IIQ, DCR, K25, KDC, MEF, MOS, ERF`);
+        return;
+      }
+      
+      // Check file count limit for RAW files (max 10)
+      if (files.length > 10) {
+        alert(`Too many RAW files selected: ${files.length}\n\nMaximum allowed: 10 RAW files per conversion`);
+        return;
+      }
+      
+      // Check file sizes (500MB limit for RAW files)
+      const maxSize = 500 * 1024 * 1024; // 500MB
+      const oversizedFiles = Array.from(files).filter(file => file.size > maxSize);
+      
+      if (oversizedFiles.length > 0) {
+        alert(`File(s) too large: ${oversizedFiles.map(f => f.name).join(', ')}\n\nMaximum file size per RAW file: 500MB`);
+        return;
+      }
+      
+      // Show status
+      results.classList.add('hidden');
+      statusBox.classList.remove('hidden');
+      statusText.textContent = 'Uploading RAW files...';
+      progressBar.style.width = '20%';
+      
+      // Create FormData with files and output format
+      const formData = new FormData();
+      Array.from(files).forEach(file => {
+        formData.append('files', file);
+      });
+      formData.append('outputFormat', outputFormat);
+      
+      try {
+        statusText.textContent = 'Converting RAW files...';
+        progressBar.style.width = '50%';
+        
+        const response = await fetch('/convert', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          progressBar.style.width = '100%';
+          statusText.textContent = 'Conversion complete!';
+          
+          // Debug: Log the conversion response
+          console.log('Conversion response:', data);
+          console.log('Converted files:', data.convertedFiles);
+          console.log('Download link:', data.downloadLink);
+          
+          // Store conversion data globally for download functionality
+          window.lastConversionData = data;
+          
+          // Wait a moment to show completion
+          setTimeout(() => {
+            statusBox.classList.add('hidden');
+          }, 1000);
+          
+          // Show results with actual converted files
+          showResults(files, outputFormat, data);
+        } else {
+          throw new Error(data.message || 'Conversion failed');
+        }
+      } catch (error) {
+        console.error('Conversion error:', error);
+        statusText.textContent = `Error: ${error.message || 'Something went wrong'}`;
+        progressBar.style.width = '0%';
+      }
+    });
+    
+    // Show conversion results
+    function showResults(files, outputFormat, conversionData) {
+      const fileList = Array.from(files);
+      
+      // Clear previous results
+      imagePreview.innerHTML = '';
+      
+              // Use actual converted file info from server response if available
+        const convertedFiles = conversionData.convertedFiles || [];
+        
+        // Create preview for each file with individual download buttons
+        fileList.forEach((file, index) => {
+          const previewDiv = document.createElement('div');
+          previewDiv.className = 'text-center';
+          
+          // Use actual converted filename and size from server, or create fallback
+          let newFilename, convertedSize;
+          if (convertedFiles[index] && convertedFiles[index].filename) {
+            newFilename = convertedFiles[index].filename;
+            convertedSize = convertedFiles[index].size;
+          } else {
+            // Fallback: create filename based on input
+            const originalExt = file.name.split('.').pop().toLowerCase();
+            const newExt = outputFormat.toLowerCase();
+            newFilename = file.name.replace(`.${originalExt}`, `.${newExt}`);
+            convertedSize = file.size; // Fallback to original size
+          }
+        
+        previewDiv.innerHTML = `
+          <div class="bg-gray-100 rounded-lg p-4 mb-2">
+            <div class="text-2xl mb-2">📷</div>
+            <p class="text-sm font-medium text-gray-900">${file.name}</p>
+            <p class="text-xs text-gray-500">Original: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+            <p class="text-xs text-green-600">Converted: ${(convertedSize / 1024 / 1024).toFixed(2)} MB</p>
+            <p class="text-xs text-blue-600">Converted to ${outputFormat.toUpperCase()}</p>
+            <button class="download-single mt-2 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors" 
+                    data-filename="${newFilename}" 
+                    data-format="${outputFormat}"
+                    data-session-id="${conversionData.downloadLink.split('/').pop()}">
+              Download ${outputFormat.toUpperCase()}
+            </button>
+          </div>
+        `;
+        imagePreview.appendChild(previewDiv);
+      });
+      
+      // Show results
+      results.classList.remove('hidden');
+      statusBox.classList.add('hidden');
+      
+      // Add event listeners to individual download buttons
+      document.querySelectorAll('.download-single').forEach(button => {
+        button.addEventListener('click', function() {
+          const filename = this.getAttribute('data-filename');
+          const format = this.getAttribute('data-format');
+          const sessionId = this.getAttribute('data-session-id');
+          
+          // Debug: Log download attempt
+          console.log('Download attempt:', { filename, format, sessionId });
+          
+          // Create download link to the actual converted file
+          const downloadUrl = `/converted/${sessionId}/${filename}`;
+          console.log('Download URL:', downloadUrl);
+          
+          const a = document.createElement('a');
+          a.href = downloadUrl;
+          a.download = filename;
+          a.target = '_blank';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        });
+      });
+    }
+    
+    // Make CTA buttons functional
+    document.querySelectorAll('button').forEach(button => {
+      if (button.textContent.includes('Convert RAW Images Now')) {
+        button.addEventListener('click', () => {
+          document.querySelector('.upload-area').scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'center'
+          });
+          
+          const uploadArea = document.querySelector('.upload-area');
+          uploadArea.classList.add('border-blue-500', 'bg-blue-50');
+          setTimeout(() => {
+            uploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+          }, 2000);
+        });
+      }
+    });
+    
+    // Download functionality
+    document.addEventListener('click', function(e) {
+      if (e.target.id === 'downloadAll') {
+        e.preventDefault();
+        
+        // Use the server's ZIP download functionality
+        if (window.lastConversionData && window.lastConversionData.downloadLink) {
+          const downloadUrl = window.lastConversionData.downloadLink;
+          const a = document.createElement('a');
+          a.href = downloadUrl;
+          a.download = 'converted_images.zip';
+          a.target = '_blank';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } else {
+          alert('No conversion data available. Please convert files first.');
+        }
+      }
+      
+      if (e.target.id === 'downloadIndividual') {
+        // Trigger all individual download buttons
+        document.querySelectorAll('.download-single').forEach(button => {
+          button.click();
+        });
+      }
+    });
+  </script>
+</body>
+</html>

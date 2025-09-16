@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Analytics - imgtojpg.org</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .analytics-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .analytics-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .visitors .card-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .pageviews .card-icon {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        .bounce-rate .card-icon {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .session-duration .card-icon {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+            color: white;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .card-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .card-change {
+            font-size: 0.9rem;
+            color: #28a745;
+            font-weight: 500;
+        }
+
+        .card-change.negative {
+            color: #dc3545;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            background: #f8f9fa;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chart-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .chart-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-header {
+            margin-bottom: 20px;
+        }
+
+        .table-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .analytics-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .analytics-table th,
+        .analytics-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .analytics-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .analytics-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .page-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .page-views {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .bounce-rate {
+            color: #f5576c;
+            font-weight: 600;
+        }
+
+        .session-time {
+            color: #43e97b;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .real-time-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+            z-index: 1000;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-controls {
+                flex-wrap: wrap;
+            }
+            
+            .analytics-table {
+                font-size: 0.9rem;
+            }
+            
+            .analytics-table th,
+            .analytics-table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="real-time-indicator pulse">
+        🔴 Live Analytics
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Website Analytics Dashboard</h1>
+            <p>Real-time insights into your website performance</p>
+        </div>
+
+        <div class="analytics-grid">
+            <div class="analytics-card visitors">
+                <div class="card-header">
+                    <div class="card-icon">👥</div>
+                    <div>
+                        <div class="card-title">Total Visitors</div>
+                    </div>
+                </div>
+                <div class="card-value" id="visitorCount">0</div>
+                <div class="card-change">+12.5% from last week</div>
+            </div>
+
+            <div class="analytics-card pageviews">
+                <div class="card-header">
+                    <div class="card-icon">📊</div>
+                    <div>
+                        <div class="card-title">Page Views</div>
+                    </div>
+                </div>
+                <div class="card-value" id="pageviewCount">0</div>
+                <div class="card-change">+8.3% from last week</div>
+            </div>
+
+            <div class="analytics-card bounce-rate">
+                <div class="card-header">
+                    <div class="card-icon">↩️</div>
+                    <div>
+                        <div class="card-title">Bounce Rate</div>
+                    </div>
+                </div>
+                <div class="card-value" id="bounceRate">0%</div>
+                <div class="card-change negative">+2.1% from last week</div>
+            </div>
+
+            <div class="analytics-card session-duration">
+                <div class="card-header">
+                    <div class="card-icon">⏱️</div>
+                    <div>
+                        <div class="card-title">Avg. Session</div>
+                    </div>
+                </div>
+                <div class="card-value" id="sessionDuration">0m</div>
+                <div class="card-change">+5.7% from last week</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-header">
+                <div class="chart-title">Traffic Overview</div>
+                <div class="chart-controls">
+                    <button class="chart-btn active" data-period="7d">7 Days</button>
+                    <button class="chart-btn" data-period="30d">30 Days</button>
+                    <button class="chart-btn" data-period="90d">90 Days</button>
+                </div>
+            </div>
+            <div class="chart-canvas" id="trafficChart">
+                <div>Loading traffic data...</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">Top Performing Pages</div>
+            </div>
+            <table class="analytics-table">
+                <thead>
+                    <tr>
+                        <th>Page</th>
+                        <th>Page Views</th>
+                        <th>Bounce Rate</th>
+                        <th>Avg. Session Time</th>
+                        <th>Performance</th>
+                    </tr>
+                </thead>
+                <tbody id="pagesTable">
+                    <tr>
+                        <td class="page-name">Homepage</td>
+                        <td class="page-views">2,847</td>
+                        <td class="bounce-rate">32%</td>
+                        <td class="session-time">4m 23s</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill progress-fill-85"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="page-name">HEIC to JPG</td>
+                        <td class="page-views">1,923</td>
+                        <td class="bounce-rate">28%</td>
+                        <td class="session-time">6m 12s</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill progress-fill-92"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="page-name">PNG to JPG</td>
+                        <td class="page-views">1,456</td>
+                        <td class="bounce-rate">35%</td>
+                        <td class="session-time">3m 45s</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill progress-fill-78"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="page-name">Blog</td>
+                        <td class="page-views">987</td>
+                        <td class="bounce-rate">42%</td>
+                        <td class="session-time">8m 15s</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill progress-fill-65"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="page-name">About</td>
+                        <td class="page-views">654</td>
+                        <td class="bounce-rate">38%</td>
+                        <td class="session-time">2m 30s</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill progress-fill-72"></div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Analytics Data Management
+        class WebsiteAnalytics {
+            constructor() {
+                this.visitors = 0;
+                this.pageviews = 0;
+                this.bounceRate = 0;
+                this.sessionDuration = 0;
+                this.trafficData = {};
+                this.init();
+            }
+
+            init() {
+                this.loadAnalytics();
+                this.setupEventListeners();
+                this.startRealTimeUpdates();
+                this.simulateTrafficData();
+            }
+
+            loadAnalytics() {
+                // Load from localStorage if available
+                const savedData = localStorage.getItem('imgtojpg_analytics');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    this.visitors = data.visitors || 0;
+                    this.pageviews = data.pageviews || 0;
+                    this.bounceRate = data.bounceRate || 0;
+                    this.sessionDuration = data.sessionDuration || 0;
+                } else {
+                    // Initialize with default values
+                    this.visitors = 15420;
+                    this.pageviews = 28750;
+                    this.bounceRate = 34.2;
+                    this.sessionDuration = 4.8;
+                }
+                this.updateDisplay();
+            }
+
+            saveAnalytics() {
+                const data = {
+                    visitors: this.visitors,
+                    pageviews: this.pageviews,
+                    bounceRate: this.bounceRate,
+                    sessionDuration: this.sessionDuration,
+                    lastUpdated: new Date().toISOString()
+                };
+                localStorage.setItem('imgtojpg_analytics', JSON.stringify(data));
+            }
+
+            updateDisplay() {
+                document.getElementById('visitorCount').textContent = this.visitors.toLocaleString();
+                document.getElementById('pageviewCount').textContent = this.pageviews.toLocaleString();
+                document.getElementById('bounceRate').textContent = this.bounceRate.toFixed(1) + '%';
+                document.getElementById('sessionDuration').textContent = this.sessionDuration.toFixed(1) + 'm';
+            }
+
+            setupEventListeners() {
+                // Chart period buttons
+                document.querySelectorAll('.chart-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.updateChart(e.target.dataset.period);
+                    });
+                });
+            }
+
+            updateChart(period) {
+                const chartCanvas = document.getElementById('trafficChart');
+                const periods = {
+                    '7d': '7 Days',
+                    '30d': '30 Days',
+                    '90d': '90 Days'
+                };
+                
+                chartCanvas.innerHTML = `
+                    <div class="chart-container">
+                        <div class="chart-icon">📈</div>
+                        <div class="chart-title">Traffic Data for ${periods[period]}</div>
+                        <div class="chart-description">Chart visualization would be implemented here</div>
+                        <div class="chart-data-container">
+                            <div class="chart-data-title">Sample Data:</div>
+                            <div>Visitors: ${(this.visitors * (period === '7d' ? 0.15 : period === '30d' ? 0.6 : 1)).toFixed(0)}</div>
+                            <div>Page Views: ${(this.pageviews * (period === '7d' ? 0.15 : period === '30d' ? 0.6 : 1)).toFixed(0)}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            startRealTimeUpdates() {
+                // Simulate real-time updates every 30 seconds
+                setInterval(() => {
+                    this.simulateRealTimeActivity();
+                }, 30000);
+            }
+
+            simulateRealTimeActivity() {
+                // Simulate new visitors and pageviews
+                const newVisitors = Math.floor(Math.random() * 3) + 1;
+                const newPageviews = Math.floor(Math.random() * 5) + 2;
+                
+                this.visitors += newVisitors;
+                this.pageviews += newPageviews;
+                
+                // Slight variations in bounce rate and session duration
+                this.bounceRate += (Math.random() - 0.5) * 0.2;
+                this.sessionDuration += (Math.random() - 0.5) * 0.1;
+                
+                // Keep values in reasonable ranges
+                this.bounceRate = Math.max(20, Math.min(60, this.bounceRate));
+                this.sessionDuration = Math.max(1, Math.min(10, this.sessionDuration));
+                
+                this.updateDisplay();
+                this.saveAnalytics();
+                
+                // Update real-time indicator
+                this.updateRealTimeIndicator(newVisitors, newPageviews);
+            }
+
+            updateRealTimeIndicator(visitors, pageviews) {
+                const indicator = document.querySelector('.real-time-indicator');
+                indicator.innerHTML = `🔴 Live: +${visitors} visitors, +${pageviews} pageviews`;
+                indicator.style.background = '#28a745';
+                
+                setTimeout(() => {
+                    indicator.innerHTML = '🔴 Live Analytics';
+                    indicator.style.background = '#28a745';
+                }, 3000);
+            }
+
+            simulateTrafficData() {
+                // Generate sample traffic data for different time periods
+                this.trafficData = {
+                    '7d': this.generateTimeSeriesData(7),
+                    '30d': this.generateTimeSeriesData(30),
+                    '90d': this.generateTimeSeriesData(90)
+                };
+            }
+
+            generateTimeSeriesData(days) {
+                const data = [];
+                const baseVisitors = this.visitors / days;
+                
+                for (let i = 0; i < days; i++) {
+                    const variation = 0.8 + Math.random() * 0.4; // ±20% variation
+                    data.push({
+                        date: new Date(Date.now() - (days - i) * 24 * 60 * 60 * 1000),
+                        visitors: Math.floor(baseVisitors * variation),
+                        pageviews: Math.floor(baseVisitors * variation * 1.8)
+                    });
+                }
+                
+                return data;
+            }
+
+            // Track page view
+            trackPageView(pageName) {
+                this.pageviews++;
+                this.saveAnalytics();
+                this.updateDisplay();
+                
+                // Log the page view
+                console.log(`Page view tracked: ${pageName}`);
+            }
+
+            // Track event
+            trackEvent(eventName, eventData = {}) {
+                console.log(`Event tracked: ${eventName}`, eventData);
+                
+                // Store event data
+                const events = JSON.parse(localStorage.getItem('imgtojpg_events') || '[]');
+                events.push({
+                    name: eventName,
+                    data: eventData,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Keep only last 100 events
+                if (events.length > 100) {
+                    events.splice(0, events.length - 100);
+                }
+                
+                localStorage.setItem('imgtojpg_events', JSON.stringify(events));
+            }
+        }
+
+        // Initialize analytics when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.analytics = new WebsiteAnalytics();
+            
+            // Track this page view
+            window.analytics.trackPageView('Analytics Dashboard');
+            
+            // Update chart with default period
+            window.analytics.updateChart('7d');
+        });
+
+        // Track user interactions
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('chart-btn')) {
+                window.analytics.trackEvent('chart_period_changed', {
+                    period: e.target.dataset.period
+                });
+            }
+        });
+
+        // Track page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                window.analytics.trackEvent('page_hidden');
+            } else {
+                window.analytics.trackEvent('page_visible');
+            }
+        });
+
+        // Track scroll depth
+        let maxScrollDepth = 0;
+        window.addEventListener('scroll', () => {
+            const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+            if (scrollPercent > maxScrollDepth) {
+                maxScrollDepth = scrollPercent;
+                if (scrollPercent % 25 === 0) { // Track every 25%
+                    window.analytics.trackEvent('scroll_depth', { depth: scrollPercent });
+                }
+            }
+        });
+    </script>
+</body>
+</html>

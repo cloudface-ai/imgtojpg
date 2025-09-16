@@ -1,0 +1,468 @@
+{
+  "schemas": {
+    "main_index_page": {
+      "WebApplication": {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "imgtojpg.org - Free Online Image Converter",
+        "description": "Free online image converter by Vinod Kumar. Convert HEIC, PNG, WebP, TIFF, SVG, and RAW camera formats to JPG, TIFF, and PSD. Fast, secure, batch processing.",
+        "url": "https://imgtojpg.org/",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Free online image conversion service"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Vinod Kumar",
+          "description": "Tech geek with a creative streak, founder of imgtojpg.org and Linqrius.com",
+          "url": "https://linqrius.com"
+        },
+        "creator": {
+          "@type": "Person",
+          "name": "Vinod Kumar"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "imgtojpg.org",
+          "url": "https://imgtojpg.org/"
+        },
+        "featureList": [
+          "HEIC to JPG conversion",
+          "PNG to JPG conversion", 
+          "WebP to JPG conversion",
+          "TIFF to JPG conversion",
+          "SVG to JPG conversion",
+          "RAW camera format conversion",
+          "Batch processing",
+          "Secure file handling",
+          "No registration required"
+        ],
+        "screenshot": "https://imgtojpg.org/Vinod Kumar.png",
+        "softwareVersion": "1.2.0",
+        "datePublished": "2024-01-01",
+        "dateModified": "2025-01-27"
+      },
+      "Organization": {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "imgtojpg.org",
+        "url": "https://imgtojpg.org/",
+        "logo": "https://imgtojpg.org/favicon.ico",
+        "description": "Free online image conversion service providing fast, secure conversion of various image formats",
+        "founder": {
+          "@type": "Person",
+          "name": "Vinod Kumar"
+        },
+        "sameAs": [
+          "https://linqrius.com"
+        ]
+      },
+      "FAQPage": {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What image formats can I convert?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "We support HEIC, PNG, WebP, TIFF, SVG, and professional RAW camera formats (CR2, CR3, NEF, ARW, RAF, ORF, PEF, RW2, 3FR, IIQ). You can convert these to JPG, PNG, WebP, TIFF, and PSD formats."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is the service really free?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, our image conversion service is completely free with no hidden costs, watermarks, or registration required. We believe everyone should have access to quality image conversion tools."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How secure is my data?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Your privacy is our priority. All images are processed locally and automatically deleted after conversion. We don't store, share, or access your files beyond the conversion process."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I convert multiple images at once?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Absolutely! Our batch processing feature allows you to convert multiple images simultaneously, saving you time and effort."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What's the maximum file size?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "We support files up to 100MB, making it perfect for high-resolution photos and professional RAW files. Most common image formats work seamlessly with our service."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Who created this service?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "imgtojpg.org was created by Vinod Kumar, a tech enthusiast passionate about building useful tools. I also run Linqrius.com, a digital toolkit for businesses and creators."
+            }
+          }
+        ]
+      },
+      "BreadcrumbList": {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://imgtojpg.org/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Image Converters",
+            "item": "https://imgtojpg.org/#converters"
+          }
+        ]
+      },
+      "Service": {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        "name": "Online Image Conversion Service",
+        "description": "Professional image format conversion service supporting HEIC, PNG, WebP, TIFF, SVG, and RAW camera formats",
+        "provider": {
+          "@type": "Organization",
+          "name": "imgtojpg.org",
+          "url": "https://imgtojpg.org/"
+        },
+        "serviceType": "Image Format Conversion",
+        "areaServed": "Worldwide",
+        "availableChannel": {
+          "@type": "ServiceChannel",
+          "serviceUrl": "https://imgtojpg.org/"
+        },
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Image Conversion Services",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "HEIC to JPG Converter",
+                "url": "https://imgtojpg.org/heic-to-jpg.html"
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "PNG to JPG Converter",
+                "url": "https://imgtojpg.org/png-to-jpg.html"
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "RAW to JPG Converter",
+                "url": "https://imgtojpg.org/camera-raw-converter.html"
+              }
+            }
+          ]
+        }
+      },
+      "LocalBusiness": {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "imgtojpg.org",
+        "description": "Online image conversion service",
+        "url": "https://imgtojpg.org/",
+        "telephone": "+1-800-IMAGE-CONVERT",
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "US"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": "40.7128",
+          "longitude": "-74.0060"
+        },
+        "openingHours": "Mo-Su 00:00-23:59",
+        "priceRange": "Free"
+      }
+    },
+    "camera_raw_converter": {
+      "WebApplication": {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "RAW to JPG Converter - Professional Camera RAW Converter",
+        "description": "Convert RAW photos from Canon, Nikon, Sony cameras to JPG, TIFF, PSD. Free online RAW converter with professional quality.",
+        "url": "https://imgtojpg.org/camera-raw-converter.html",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Free professional RAW photo conversion service"
+        },
+        "featureList": [
+          "Canon CR2/CR3 support",
+          "Nikon NEF support", 
+          "Sony ARW support",
+          "Fujifilm RAF support",
+          "Professional quality output",
+          "Batch processing",
+          "Multiple output formats",
+          "Auto-orientation correction",
+          "Secure file handling"
+        ],
+        "screenshot": "https://imgtojpg.org/Vinod Kumar.png",
+        "softwareVersion": "1.2.0",
+        "datePublished": "2024-01-01",
+        "dateModified": "2025-01-27"
+      },
+      "Service": {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        "name": "Professional RAW Photo Conversion Service",
+        "description": "Convert professional camera RAW formats to JPG, TIFF, and PSD with ImageMagick and LibRaw technology",
+        "provider": {
+          "@type": "Organization",
+          "name": "imgtojpg.org",
+          "url": "https://imgtojpg.org/"
+        },
+        "serviceType": "RAW Photo Conversion",
+        "areaServed": "Worldwide",
+        "availableChannel": {
+          "@type": "ServiceChannel",
+          "serviceUrl": "https://imgtojpg.org/camera-raw-converter.html"
+        },
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "RAW Conversion Services",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "RAW to JPG Conversion",
+                "description": "Convert RAW photos to high-quality JPG format"
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "RAW to TIFF Conversion",
+                "description": "Convert RAW photos to professional TIFF format"
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "RAW to PSD Conversion",
+                "description": "Convert RAW photos to Photoshop PSD format"
+              }
+            }
+          ]
+        }
+      },
+      "BreadcrumbList": {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://imgtojpg.org/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Camera Raw Converter",
+            "item": "https://imgtojpg.org/camera-raw-converter.html"
+          }
+        ]
+      },
+      "HowTo": {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        "name": "How to Convert RAW Photos to JPG Online",
+        "description": "Step-by-step guide to convert professional camera RAW photos to JPG format using our free online converter",
+        "image": "https://imgtojpg.org/Vinod Kumar.png",
+        "totalTime": "PT2M",
+        "estimatedCost": "0",
+        "supply": [
+          {
+            "@type": "HowToSupply",
+            "name": "RAW photo file"
+          },
+          {
+            "@type": "HowToSupply",
+            "name": "Web browser"
+          }
+        ],
+        "tool": [
+          {
+            "@type": "HowToTool",
+            "name": "imgtojpg.org RAW converter"
+          }
+        ],
+        "step": [
+          {
+            "@type": "HowToStep",
+            "name": "Upload RAW file",
+            "text": "Drag and drop or select your RAW photo file (CR2, CR3, NEF, ARW, etc.)",
+            "image": "https://imgtojpg.org/Vinod Kumar.png"
+          },
+          {
+            "@type": "HowToStep",
+            "name": "Choose output format",
+            "text": "Select JPG, TIFF, or PSD as your desired output format",
+            "image": "https://imgtojpg.org/Vinod Kumar.png"
+          },
+          {
+            "@type": "HowToStep",
+            "name": "Convert and download",
+            "text": "Click convert and download your professionally converted image file",
+            "image": "https://imgtojpg.org/Vinod Kumar.png"
+          }
+        ]
+      }
+    },
+    "svg_to_jpg_converter": {
+      "WebApplication": {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "SVG to JPG Converter - Vector to Raster Converter",
+        "description": "Convert SVG vector images to JPG format online. Free SVG to JPG converter with batch processing.",
+        "url": "https://imgtojpg.org/svg-to-jpg.html",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Free SVG to JPG conversion service"
+        },
+        "featureList": [
+          "SVG vector support",
+          "High-quality JPG output",
+          "Batch processing",
+          "Web compatibility",
+          "Social media ready",
+          "Secure file handling",
+          "No registration required"
+        ],
+        "screenshot": "https://imgtojpg.org/Vinod Kumar.png",
+        "softwareVersion": "1.2.0",
+        "datePublished": "2024-01-01",
+        "dateModified": "2025-01-27"
+      },
+      "Service": {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        "name": "SVG to JPG Conversion Service",
+        "description": "Professional SVG vector to JPG raster conversion service for web and social media use",
+        "provider": {
+          "@type": "Organization",
+          "name": "imgtojpg.org",
+          "url": "https://imgtojpg.org/"
+        },
+        "serviceType": "Vector to Raster Conversion",
+        "areaServed": "Worldwide",
+        "availableChannel": {
+          "@type": "ServiceChannel",
+          "serviceUrl": "https://imgtojpg.org/svg-to-jpg.html"
+        }
+      },
+      "BreadcrumbList": {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://imgtojpg.org/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "SVG to JPG Converter",
+            "item": "https://imgtojpg.org/svg-to-jpg.html"
+          }
+        ]
+      },
+      "HowTo": {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        "name": "How to Convert SVG to JPG Online",
+        "description": "Step-by-step guide to convert SVG vector graphics to JPG format using our free online converter",
+        "image": "https://imgtojpg.org/Vinod Kumar.png",
+        "totalTime": "PT1M",
+        "estimatedCost": "0",
+        "supply": [
+          {
+            "@type": "HowToSupply",
+            "name": "SVG file"
+          },
+          {
+            "@type": "HowToSupply",
+            "name": "Web browser"
+          }
+        ],
+        "tool": [
+          {
+            "@type": "HowToTool",
+            "name": "imgtojpg.org SVG converter"
+          }
+        ],
+        "step": [
+          {
+            "@type": "HowToStep",
+            "name": "Upload SVG file",
+            "text": "Drag and drop or select your SVG vector graphics file",
+            "image": "https://imgtojpg.org/Vinod Kumar.png"
+          },
+          {
+            "@type": "HowToStep",
+            "name": "Convert to JPG",
+            "text": "Click convert to transform your SVG to high-quality JPG format",
+            "image": "https://imgtojpg.org/Vinod Kumar.png"
+          },
+          {
+            "@type": "HowToStep",
+            "name": "Download result",
+            "text": "Download your converted JPG file for web or social media use",
+            "image": "https://imgtojpg.org/Vinod Kumar.png"
+          }
+        ]
+      }
+    }
+  },
+  "usage_notes": {
+    "implementation": "Add these JSON-LD scripts in the <head> section of your HTML pages",
+    "testing": "Use Google's Rich Results Test tool to validate your schema markup",
+    "benefits": [
+      "Rich snippets in search results",
+      "Better search engine understanding",
+      "Enhanced local search visibility",
+      "Featured snippets potential",
+      "Improved click-through rates"
+    ],
+    "maintenance": "Update dates and versions regularly, add new features to featureList arrays"
+  }
+}

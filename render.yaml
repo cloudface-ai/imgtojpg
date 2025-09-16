@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: heic-to-jpg
+    env: node
+    buildCommand: |
+      # Install Node.js dependencies
+      npm ci --only=production
+      
+      # Build CSS and JavaScript for production
+      npm run build:css:prod
+      npm run build:js:individual
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: EMAIL_USER
+        value: nerdykeeda@gmail.com
+      - key: EMAIL_PASS
+        value: mxui kyau lggc jxji
