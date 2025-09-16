@@ -170,3 +170,11 @@ uploads/
 public/converted/
 node_modules/
 .DS_Store
+
+# Local only
+.env
+stats/
+uploads/
+public/converted/
+node_modules/
+.DS_Store
