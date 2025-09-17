@@ -325,8 +325,42 @@ async function writePsd(fromBufferOrPath, outputPath) {
           const availableTools = checkRawToolsAvailable();
           console.log(`🎯 Processing RAW file ${originalName} (${ext}) → ${outputFormat}`);
           
-          // RAW: special handling for TIFF/PSD direct paths first
-          if (outputFormat.toLowerCase() === 'tiff') {
+          // Try ImageMagick first as it's most reliable in containers
+          let buffer;
+          let conversionSucceeded = false;
+          
+          console.log(`🔄 Attempting ImageMagick direct conversion for ${originalName}`);
+          try {
+            const cmd = getMagickCmd();
+            const magickOutput = path.join(sessionPath, `magick_${base}.${outputFormat}`);
+            
+            if (outputFormat.toLowerCase() === 'jpg' || outputFormat.toLowerCase() === 'jpeg') {
+              execSync(`${cmd} "${inputPath}" -auto-orient -quality 90 -strip "${magickOutput}"`, { stdio: 'pipe' });
+            } else if (outputFormat.toLowerCase() === 'tiff') {
+              execSync(`${cmd} "${inputPath}" -auto-orient -compress JPEG -quality 92 -strip "${magickOutput}"`, { stdio: 'pipe' });
+            } else if (outputFormat.toLowerCase() === 'png') {
+              execSync(`${cmd} "${inputPath}" -auto-orient -strip "${magickOutput}"`, { stdio: 'pipe' });
+            } else {
+              execSync(`${cmd} "${inputPath}" -auto-orient -strip "${magickOutput}"`, { stdio: 'pipe' });
+            }
+            
+            if (fs.existsSync(magickOutput)) {
+              const stats = fs.statSync(magickOutput);
+              console.log(`✅ ImageMagick success: ${path.basename(magickOutput)} (${stats.size} bytes)`);
+              buffer = fs.readFileSync(magickOutput);
+              fs.unlinkSync(magickOutput);
+              conversionSucceeded = true;
+            }
+          } catch (magickErr) {
+            console.log(`⚠️ ImageMagick failed: ${magickErr.message}`);
+          }
+          
+          // Fallback to dcraw methods only if ImageMagick failed
+          if (!conversionSucceeded) {
+            console.log(`🔄 Falling back to dcraw methods for ${originalName}`);
+            
+            // RAW: special handling for TIFF/PSD direct paths first
+            if (outputFormat.toLowerCase() === 'tiff') {
             let ok = false;
             // 1) Try dcraw_emu → TIFF
             try { buffer = await processWithDcrawEmu(inputPath, sessionPath, 'tiff', outputPath); ok = true; } catch (_) {}
@@ -419,7 +453,7 @@ async function writePsd(fromBufferOrPath, outputPath) {
               if (!ok) { try { buffer = await processWithDcraw(inputPath, sessionPath, outputFormat, outputPath); ok = true; } catch (_) {} }
               if (!ok) { buffer = await processWithVips(inputPath, sessionPath, outputFormat); }
             }
-          }
+          } // Close dcraw fallback section
         } else {
           const inst = sharp(inputPath);
           switch (outputFormat.toLowerCase()) {
