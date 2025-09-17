@@ -44,26 +44,6 @@ function escapeHtml(str) {
   return String(str).replace(/[&<>"]+/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[s]));
 }
 
-// Check what RAW tools are available in this environment
-function checkRawToolsAvailable() {
-  const tools = {
-    dcraw: false,
-    dcraw_emu: false,
-    libraw_dcraw_emu: false,
-    vips: false,
-    magick: false
-  };
-  
-  try { execSync('dcraw -V', { stdio: 'pipe' }); tools.dcraw = true; } catch {}
-  try { execSync('dcraw_emu -V', { stdio: 'pipe' }); tools.dcraw_emu = true; } catch {}
-  try { execSync('libraw_dcraw_emu -V', { stdio: 'pipe' }); tools.libraw_dcraw_emu = true; } catch {}
-  try { execSync('vips --version', { stdio: 'pipe' }); tools.vips = true; } catch {}
-  try { execSync(`${getMagickCmd()} -version`, { stdio: 'pipe' }); tools.magick = true; } catch {}
-  
-  console.log('🔧 RAW processing tools available:', JSON.stringify(tools));
-  return tools;
-}
-
 async function processWithVips(inputPath, sessionPath, outputFormat) {
   const tempPngPath = path.join(sessionPath, `__vips_temp_${path.basename(inputPath)}.png`);
   const vipsCmd = `vips copy "${inputPath}" "${tempPngPath}"`;
@@ -117,13 +97,10 @@ async function processWithDcraw(inputPath, sessionPath, outputFormat, outputPath
   const inputBasename = path.basename(inputPath, path.extname(inputPath));
   const tiffPath = path.join(sessionPath, `${inputBasename}.tiff`);
   const dcrawCommand = `dcraw -v -w -T "${inputPath}"`;
-  
   console.log(`🔧 dcraw: input=${path.basename(inputPath)}, expected output=${path.basename(tiffPath)}`);
-  
   try {
     execSync(dcrawCommand, { cwd: sessionPath, stdio: 'pipe' });
   } catch (e) {
-    console.log(`⚠️ dcraw failed: ${e.message}, trying ImageMagick fallback`);
     // fallback: try ImageMagick directly to TIFF
     const cmd = getMagickCmd();
     try {
@@ -132,15 +109,10 @@ async function processWithDcraw(inputPath, sessionPath, outputFormat, outputPath
       throw new Error('dcraw and ImageMagick both failed to produce TIFF');
     }
   }
-  
   if (!fs.existsSync(tiffPath)) {
-    console.log(`❌ dcraw TIFF not found at expected path: ${tiffPath}`);
-    // List what files dcraw actually created
-    const sessionFiles = fs.readdirSync(sessionPath).filter(f => f.includes(inputBasename));
-    console.log(`📁 Files in session with basename "${inputBasename}":`, sessionFiles);
-    throw new Error(`dcraw did not produce TIFF at ${tiffPath}`);
+    console.log(`❌ dcraw TIFF not found at: ${tiffPath}`);
+    throw new Error('dcraw did not produce TIFF');
   }
-  
   console.log(`✅ dcraw created TIFF: ${path.basename(tiffPath)} (${fs.statSync(tiffPath).size} bytes)`);
   const inst = sharp(tiffPath);
   let buffer;
@@ -180,9 +152,6 @@ async function processWithDcrawEmu(inputPath, sessionPath, outputFormat, outputP
   // dcraw_emu creates TIFF with the SAME basename as input file, not output file
   const inputBasename = path.basename(inputPath, path.extname(inputPath));
   const tiffPath = path.join(sessionPath, `${inputBasename}.tiff`);
-  
-  console.log(`🔧 dcraw_emu: input=${path.basename(inputPath)}, expected output=${path.basename(tiffPath)}`);
-  
   try {
     // probe dcraw_emu (some builds don't support -V)
     try { execSync('dcraw_emu -h', { stdio: 'pipe' }); }
@@ -190,23 +159,18 @@ async function processWithDcrawEmu(inputPath, sessionPath, outputFormat, outputP
   } catch (_) {
     throw new Error('dcraw_emu not available');
   }
-  
+  console.log(`🔧 dcraw_emu: input=${path.basename(inputPath)}, expected output=${path.basename(tiffPath)}`);
   try {
     const cmd = `dcraw_emu -w -T "${inputPath}"`;
     execSync(cmd, { cwd: sessionPath, stdio: 'pipe' });
   } catch (e) {
-    console.log(`⚠️ dcraw_emu failed: ${e.message}`);
     throw new Error('dcraw_emu failed');
   }
 
   if (!fs.existsSync(tiffPath)) {
-    console.log(`❌ dcraw_emu TIFF not found at expected path: ${tiffPath}`);
-    // List what files dcraw_emu actually created
-    const sessionFiles = fs.readdirSync(sessionPath).filter(f => f.includes(inputBasename));
-    console.log(`📁 Files in session with basename "${inputBasename}":`, sessionFiles);
-    throw new Error(`dcraw_emu did not produce TIFF at ${tiffPath}`);
+    console.log(`❌ dcraw_emu TIFF not found at: ${tiffPath}`);
+    throw new Error('dcraw_emu did not produce TIFF');
   }
-  
   console.log(`✅ dcraw_emu created TIFF: ${path.basename(tiffPath)} (${fs.statSync(tiffPath).size} bytes)`);
   const inst = sharp(tiffPath);
   let buffer;
@@ -321,46 +285,8 @@ async function writePsd(fromBufferOrPath, outputPath) {
             }
           }
         } else if (isRawExt(ext)) {
-          // Check what RAW processing tools are available
-          const availableTools = checkRawToolsAvailable();
-          console.log(`🎯 Processing RAW file ${originalName} (${ext}) → ${outputFormat}`);
-          
-          // Try ImageMagick first as it's most reliable in containers
-          let buffer;
-          let conversionSucceeded = false;
-          
-          console.log(`🔄 Attempting ImageMagick direct conversion for ${originalName}`);
-          try {
-            const cmd = getMagickCmd();
-            const magickOutput = path.join(sessionPath, `magick_${base}.${outputFormat}`);
-            
-            if (outputFormat.toLowerCase() === 'jpg' || outputFormat.toLowerCase() === 'jpeg') {
-              execSync(`${cmd} "${inputPath}" -auto-orient -quality 90 -strip "${magickOutput}"`, { stdio: 'pipe' });
-            } else if (outputFormat.toLowerCase() === 'tiff') {
-              execSync(`${cmd} "${inputPath}" -auto-orient -compress JPEG -quality 92 -strip "${magickOutput}"`, { stdio: 'pipe' });
-            } else if (outputFormat.toLowerCase() === 'png') {
-              execSync(`${cmd} "${inputPath}" -auto-orient -strip "${magickOutput}"`, { stdio: 'pipe' });
-            } else {
-              execSync(`${cmd} "${inputPath}" -auto-orient -strip "${magickOutput}"`, { stdio: 'pipe' });
-            }
-            
-            if (fs.existsSync(magickOutput)) {
-              const stats = fs.statSync(magickOutput);
-              console.log(`✅ ImageMagick success: ${path.basename(magickOutput)} (${stats.size} bytes)`);
-              buffer = fs.readFileSync(magickOutput);
-              fs.unlinkSync(magickOutput);
-              conversionSucceeded = true;
-            }
-          } catch (magickErr) {
-            console.log(`⚠️ ImageMagick failed: ${magickErr.message}`);
-          }
-          
-          // Fallback to dcraw methods only if ImageMagick failed
-          if (!conversionSucceeded) {
-            console.log(`🔄 Falling back to dcraw methods for ${originalName}`);
-            
-            // RAW: special handling for TIFF/PSD direct paths first
-            if (outputFormat.toLowerCase() === 'tiff') {
+          // RAW: special handling for TIFF/PSD direct paths first
+          if (outputFormat.toLowerCase() === 'tiff') {
             let ok = false;
             // 1) Try dcraw_emu → TIFF
             try { buffer = await processWithDcrawEmu(inputPath, sessionPath, 'tiff', outputPath); ok = true; } catch (_) {}
@@ -378,16 +304,7 @@ async function writePsd(fromBufferOrPath, outputPath) {
               } catch (_) {}
             }
             // 4) Last fallback: libvips
-            if (!ok) { 
-              try {
-                buffer = await processWithVips(inputPath, sessionPath, 'tiff'); 
-                ok = true;
-              } catch (vipsErr) {
-                console.log(`❌ All RAW→TIFF methods failed for ${originalName}:`, vipsErr.message);
-                // Generate error placeholder TIFF
-                buffer = await makeErrorPlaceholder('tiff', originalName, `RAW tools unavailable: ${JSON.stringify(availableTools)}`);
-              }
-            }
+            if (!ok) { buffer = await processWithVips(inputPath, sessionPath, 'tiff'); }
           } else if (outputFormat.toLowerCase() === 'psd') {
             // Prefer RAW → TIFF via dcraw, then write PSD
             let baseTiff;
@@ -430,14 +347,7 @@ async function writePsd(fromBufferOrPath, outputPath) {
                 } catch (_) {}
               }
               if (!ok) {
-                try {
-                  buffer = await processWithVips(inputPath, sessionPath, 'jpg');
-                  ok = true;
-                } catch (vipsErr) {
-                  console.log(`❌ All RAW→JPG methods failed for ${originalName}:`, vipsErr.message);
-                  // Generate error placeholder JPG
-                  buffer = await makeErrorPlaceholder('jpg', originalName, `RAW tools unavailable: ${JSON.stringify(availableTools)}`);
-                }
+                buffer = await processWithVips(inputPath, sessionPath, 'jpg');
               }
               // If suspiciously tiny (<16KB), retry alternate path once (vips)
               if (!buffer || buffer.length < 16384) {
@@ -453,7 +363,7 @@ async function writePsd(fromBufferOrPath, outputPath) {
               if (!ok) { try { buffer = await processWithDcraw(inputPath, sessionPath, outputFormat, outputPath); ok = true; } catch (_) {} }
               if (!ok) { buffer = await processWithVips(inputPath, sessionPath, outputFormat); }
             }
-          } // Close dcraw fallback section
+          }
         } else {
           const inst = sharp(inputPath);
           switch (outputFormat.toLowerCase()) {
