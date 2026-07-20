@@ -177,40 +177,41 @@
         <div class="container mx-auto px-4 pb-12">
             <!-- Usage Overview -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <!-- Normal Conversions -->
+                <!-- Monthly Conversions (shared pool: normal + RAW) -->
                 <div class="dashboard-card bg-white rounded-xl p-6 border border-gray-200">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-semibold text-gray-900">Normal Conversions</h3>
+                        <h3 class="font-semibold text-gray-900">Monthly Conversions</h3>
                         <span class="text-2xl">🔄</span>
                     </div>
                     <div class="mb-3">
                         <div class="flex justify-between text-sm mb-1">
-                            <span id="normal-used">0</span>
-                            <span id="normal-limit">50</span>
+                            <span><span id="conversions-used">0</span> used</span>
+                            <span id="conversions-limit">20</span>
                         </div>
                         <div class="usage-bar">
-                            <div class="usage-fill" id="normal-bar" style="width: 0%"></div>
+                            <div class="usage-fill" id="conversions-bar" style="width: 0%"></div>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500" id="normal-period">This month</p>
+                    <p class="text-xs text-gray-500" id="conversions-period">This month</p>
+                    <p class="text-xs text-gray-400 mt-2">Normal: <span id="normal-used">0</span> · RAW: <span id="raw-used">0</span></p>
                 </div>
 
-                <!-- RAW Conversions -->
+                <!-- Storage -->
                 <div class="dashboard-card bg-white rounded-xl p-6 border border-gray-200">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-semibold text-gray-900">RAW Conversions</h3>
-                        <span class="text-2xl">📷</span>
+                        <h3 class="font-semibold text-gray-900">Storage</h3>
+                        <span class="text-2xl">💾</span>
                     </div>
                     <div class="mb-3">
                         <div class="flex justify-between text-sm mb-1">
-                            <span id="raw-used">0</span>
-                            <span id="raw-limit">5</span>
+                            <span><span id="storage-used">0</span> GB</span>
+                            <span id="storage-limit">2 GB</span>
                         </div>
                         <div class="usage-bar">
-                            <div class="usage-fill" id="raw-bar" style="width: 0%"></div>
+                            <div class="usage-fill" id="storage-bar" style="width: 0%"></div>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500" id="raw-period">This month</p>
+                    <p class="text-xs text-gray-500">Max file: <span id="max-file-limit">100 MB</span></p>
                 </div>
 
                 <!-- Next Billing -->
@@ -494,30 +495,37 @@
                 planExpires.textContent = 'No expiration';
             }
             
-            // Usage data
+            // Usage data — backend uses one shared monthly conversion pool
             const usage = data.usage || {};
-            const normalUsed = parseInt(usage.normal_conversions_used || usage.conversions_used || 0);
+            const normalUsed = parseInt(usage.normal_conversions_used || 0);
             const rawUsed = parseInt(usage.raw_conversions_used || 0);
+            const totalUsed = parseInt(usage.conversions_used || (normalUsed + rawUsed) || 0);
+            const storageUsed = parseFloat(usage.storage_used_gb || 0);
             
-            // Get plan limits
             const planLimits = getPlanLimits(planType);
             
-            // Update Normal Conversions
+            document.getElementById('conversions-used').textContent = totalUsed;
+            document.getElementById('conversions-limit').textContent =
+                planLimits.conversions === -1 ? '∞' : planLimits.conversions;
+            const convPercent = planLimits.conversions === -1
+                ? 0
+                : Math.min((totalUsed / planLimits.conversions) * 100, 100);
+            document.getElementById('conversions-bar').style.width = convPercent + '%';
             document.getElementById('normal-used').textContent = normalUsed;
-            document.getElementById('normal-limit').textContent = planLimits.normal === -1 ? '∞' : planLimits.normal;
-            const normalPercent = planLimits.normal === -1 ? 0 : Math.min((normalUsed / planLimits.normal) * 100, 100);
-            document.getElementById('normal-bar').style.width = normalPercent + '%';
-            
-            // Update RAW Conversions
             document.getElementById('raw-used').textContent = rawUsed;
-            document.getElementById('raw-limit').textContent = planLimits.raw === -1 ? '∞' : planLimits.raw;
-            const rawPercent = planLimits.raw === -1 ? 0 : Math.min((rawUsed / planLimits.raw) * 100, 100);
-            document.getElementById('raw-bar').style.width = rawPercent + '%';
-            
-            // Update billing period text
-            const period = planType === 'free' ? 'This week' : 'This month';
-            document.getElementById('normal-period').textContent = period;
-            document.getElementById('raw-period').textContent = period;
+            document.getElementById('conversions-period').textContent = 'This month';
+
+            document.getElementById('storage-used').textContent = storageUsed.toFixed(2);
+            document.getElementById('storage-limit').textContent =
+                planLimits.storage_gb === -1 ? '∞' : (planLimits.storage_gb + ' GB');
+            const storagePercent = planLimits.storage_gb === -1
+                ? 0
+                : Math.min((storageUsed / planLimits.storage_gb) * 100, 100);
+            document.getElementById('storage-bar').style.width = storagePercent + '%';
+            document.getElementById('max-file-limit').textContent =
+                planLimits.max_file_mb >= 1000
+                    ? (planLimits.max_file_mb / 1000) + ' GB'
+                    : planLimits.max_file_mb + ' MB';
             
             // Next billing
             if (planType === 'basic') {
@@ -549,13 +557,13 @@
             }
         }
 
-        // Get plan limits
+        // Must match config/firestore.js PLAN_LIMITS
         function getPlanLimits(planType) {
             const limits = {
-                free: { normal: 50, raw: 5 },
-                basic: { normal: 300, raw: 200 },
-                pro: { normal: 1500, raw: 1500 },
-                team: { normal: -1, raw: -1 }
+                free:  { conversions: 20,   storage_gb: 2,   max_file_mb: 100 },
+                basic: { conversions: 300,  storage_gb: 30,  max_file_mb: 500 },
+                pro:   { conversions: 1500, storage_gb: 150, max_file_mb: 1000 },
+                team:  { conversions: -1,   storage_gb: -1,  max_file_mb: 2000 }
             };
             return limits[planType] || limits.free;
         }
