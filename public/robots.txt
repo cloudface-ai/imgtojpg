@@ -1,30 +1,59 @@
+# imgtojpg.org Robots.txt - Optimized for Fast Crawling
+# Updated: 2025-01-29
+
+# Allow all search engines to crawl the site
 User-agent: *
 Allow: /
 
-# Main service pages - Allow full crawling
+# High-priority pages for immediate crawling
 Allow: /index.html
 Allow: /heic-to-jpg.html
 Allow: /png-to-jpg.html
 Allow: /webp-to-jpg.html
 Allow: /tiff-to-jpg.html
-Allow: /camera-raw-converter.html
 Allow: /svg-to-jpg.html
-
-# Content and support pages
+Allow: /camera-raw-converter.html
+Allow: /pricing.html
+Allow: /dashboard.html
 Allow: /blog.html
 Allow: /about.html
-Allow: /contact.html
+Allow: /elephic-technologies.html
+
+# Blog articles for content discovery
+Allow: /blog-privacy-security.html
+Allow: /blog-heic-conversion-guide.html
+Allow: /blog-format-comparison-guide.html
+Allow: /blog-instant-private-ai.html
+Allow: /blog-no-app-qr-sharing.html
+Allow: /blog-comparison-img-sharing.html
+Allow: /blog-pro-photography-tips.html
+Allow: /blog-iphone-17-flatlay-photography-tips-for-instagram-e.html
+
+# Support and legal pages
 Allow: /help-center.html
+Allow: /contact.html
 Allow: /privacy-policy.html
 Allow: /terms-of-use.html
+Allow: /cancellation-policy.html
+Allow: /shipping-policy.html
+Allow: /terms-subscription.html
+Allow: /privacy-subscription.html
+Allow: /refund-policy.html
 
-# Static assets - Allow crawling for better indexing
+# Static assets for better indexing
 Allow: /style.css
+Allow: /style.min.css
 Allow: /script.js
-Allow: /favicon.ico
+Allow: /script.min.js
+Allow: /imgtojpg_logo_new.png
+Allow: /manifest.webmanifest
+Allow: /sw.js
 
 # Disallow crawling of admin, system, and temporary files
 Disallow: /admin-login.html
+Disallow: /blog-login.html
+Disallow: /blog-dashboard.html
+Disallow: /blog-manager.html
 Disallow: /admin/
 Disallow: /uploads/
 Disallow: /converted/
@@ -35,34 +64,69 @@ Disallow: /package-lock.json
 Disallow: /node_modules/
 Disallow: /.git/
 Disallow: /.DS_Store
+Disallow: /.env
+Disallow: /config/
+Disallow: /middleware/
+Disallow: /routes/
+Disallow: /services/
+Disallow: /scripts/
+Disallow: /database/
+Disallow: /stats/
+
+# Google-specific optimizations
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0.5
+# Allow faster crawling for Google
+
+# Bing-specific optimizations
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0.5
+# Allow faster crawling for Bing
+
+# Social media crawlers
+User-agent: facebookexternalhit
+Allow: /
+Crawl-delay: 1
+
+User-agent: Twitterbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: LinkedInBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: WhatsApp
+Allow: /
+Crawl-delay: 1
+
+# AI and other crawlers
+User-agent: ChatGPT-User
+Allow: /
+Crawl-delay: 2
+
+User-agent: GPTBot
+Allow: /
+Crawl-delay: 2
+
+User-agent: Claude-Web
+Allow: /
+Crawl-delay: 2
 
 # Sitemap location
 Sitemap: https://imgtojpg.org/sitemap.xml
 
-# Canonical URLs - Help search engines understand preferred URLs
+# Additional SEO directives
+# Host declaration for canonical URLs
+Host: https://imgtojpg.org
+
+# Clean URLs - avoid trailing slashes for consistency
 # Primary domain: https://imgtojpg.org
 # Avoid: www.imgtojpg.org, http://imgtojpg.org
 
-# Crawl delay to prevent overwhelming the server
-Crawl-delay: 1
-
-# Additional SEO directives
-# Allow Google to index and cache your pages
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 1
-
-# Allow Bing to index your pages
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 1
-
-# Allow social media crawlers
-User-agent: facebookexternalhit
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: LinkedInBot
-Allow: /
+# Performance hints for crawlers
+# Pages are optimized for Core Web Vitals
+# Images use lazy loading and WebP format
+# CSS and JS are minified and compressed

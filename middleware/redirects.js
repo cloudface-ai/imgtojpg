@@ -4,8 +4,8 @@ const redirectMiddleware = (req, res, next) => {
   const protocol = req.protocol;
   const url = req.url;
   
-  // 🚫 CRITICAL: Skip redirects for API endpoints, admin routes, and service worker
-  if (url.startsWith('/convert') || url.startsWith('/api') || url.startsWith('/admin') || url.startsWith('/blog-manager') || url === '/sw.js') {
+  // 🚫 CRITICAL: Skip redirects for API endpoints, health checks, progress, and service worker
+  if (url.startsWith('/convert') || url.startsWith('/api') || url.startsWith('/progress') || url === '/sw.js' || url === '/health') {
     return next();
   }
   
@@ -20,10 +20,46 @@ const redirectMiddleware = (req, res, next) => {
     return res.redirect(301, `https://${newHost}${url}`);
   }
   
-  // Handle .html extensions and clean URLs
+  // Handle .html extensions and clean URLs, but allow specific pages as-is
   if (url.endsWith('.html') && url !== '/index.html') {
-    const cleanUrl = url.replace('.html', '');
-    return res.redirect(301, cleanUrl);
+    const allowHtml = new Set([
+      '/privacy-policy.html', 
+      '/terms-of-use.html', 
+      '/refund-policy.html', 
+      '/contact.html', 
+      '/about.html', 
+      '/blog.html',
+      '/heic-to-jpg.html',
+      '/png-to-jpg.html',
+      '/webp-to-jpg.html',
+      '/tiff-to-jpg.html',
+      '/svg-to-jpg.html',
+      '/camera-raw-converter.html',
+      '/help-center.html',
+      '/pricing.html',
+      '/dashboard.html',
+      '/admin-login.html',
+      '/blog-dashboard.html',
+      '/blog-manager.html',
+      '/analytics.html',
+      '/blog-comparison-img-sharing.html',
+      '/blog-format-comparison-guide.html',
+      '/blog-heic-conversion-guide.html',
+      '/blog-instant-private-ai.html',
+      '/blog-login.html',
+      '/blog-no-app-qr-sharing.html',
+      '/blog-post.html',
+      '/blog-privacy-security.html',
+      '/blog-pro-photography-tips.html'
+    ]);
+    
+    // Allow dynamic blog posts (blog-*.html)
+    const isDynamicBlogPost = url.startsWith('/blog-') && url.endsWith('.html');
+    
+    if (!allowHtml.has(url) && !isDynamicBlogPost) {
+      const cleanUrl = url.replace('.html', '');
+      return res.redirect(301, cleanUrl);
+    }
   }
   
   // Handle index.html redirects
@@ -51,7 +87,14 @@ const redirectMiddleware = (req, res, next) => {
     '/privacy': '/privacy-policy.html',
     '/privacy-policy': '/privacy-policy.html',
     '/terms': '/terms-of-use.html',
-    '/terms-of-use': '/terms-of-use.html'
+    '/terms-of-use': '/terms-of-use.html',
+    '/refund-policy': '/refund-policy.html',
+    '/pricing': '/pricing.html',
+    '/dashboard': '/dashboard.html',
+    '/admin': '/admin-login.html',
+    '/admin-login': '/admin-login.html',
+    '/blog-manager': '/blog-manager.html',
+    '/blog-dashboard': '/blog-dashboard.html'
   };
   
   if (Object.prototype.hasOwnProperty.call(urlVariations, url)) {

@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Enhanced SEO Meta Tags -->
+  <meta name="geo.region" content="IN">
+  <meta name="geo.placename" content="Gurugram, India">
+  <meta name="geo.position" content="28.4595;77.0266">
+  <meta name="ICBM" content="28.4595, 77.0266">
+  <meta name="DC.title" content="Professional Image Converter - HEIC to JPG Online">
+  <meta name="DC.creator" content="Vinod Kumar">
+  <meta name="DC.subject" content="Image Conversion, HEIC to JPG, PNG to JPG, WebP to JPG">
+  <meta name="DC.description" content="Professional image converter for HEIC, PNG, WebP, TIFF, SVG, and RAW formats. Fast, secure, and free to start.">
+  <meta name="DC.publisher" content="imgtojpg.org">
+  <meta name="DC.contributor" content="Vinod Kumar">
+  <meta name="DC.date" content="2025-09-29">
+  <meta name="DC.type" content="Service">
+  <meta name="DC.format" content="text/html">
+  <meta name="DC.identifier" content="https://imgtojpg.org/">
+  <meta name="DC.language" content="en">
+  <meta name="DC.rights" content="Copyright 2025 imgtojpg.org">
+  <meta name="DC.coverage" content="Worldwide">
+  <meta name="DC.relation" content="https://imgtojpg.org/">
+  
+  <!-- Mobile App Meta Tags -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="imgtojpg.org">
+  <meta name="msapplication-TileColor" content="#0066CC">
+  <meta name="msapplication-config" content="/browserconfig.xml">
+  
+  <!-- Performance Meta Tags -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="HandheldFriendly" content="true">
+  <meta name="MobileOptimized" content="320">
+  
+  <!-- Security Headers - Removed CSP meta tags to fix Firebase auth issues -->
+            <title>Dashboard - ImgToJPG.org | Manage Your Subscription</title>
+    <meta name="description" content="Manage your ImgToJPG subscription, track usage, and monitor your conversions.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/imgtojpg_logo_new.png">
+    <link rel="apple-touch-icon" href="/imgtojpg_logo_new.png">
+    <link rel="shortcut icon" href="/imgtojpg_logo_new.png">
+    <link rel="manifest" href="/manifest.webmanifest">
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://firebase.googleapis.com">
+    <link rel="preconnect" href="https://apis.google.com">
+    <link rel="preconnect" href="https://www.gstatic.com">
+    
+    <!-- DNS prefetch for better performance -->
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="//identitytoolkit.googleapis.com">
+    
+    <!-- Styles -->
+    <link href="/style.css" rel="stylesheet">
+    
+    <!-- Firebase - Optimized modular SDK for reduced bundle size -->
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+      import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+      
+      // Make Firebase available globally for compatibility
+      window.firebase = {
+        initializeApp,
+        auth: () => getAuth()
+      };
+      window.auth = getAuth();
+      window.signOut = signOut;
+      window.onAuthStateChanged = onAuthStateChanged;
+    </script>
+    
+    <style>
+        .dashboard-card {
+            transition: all 0.2s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-1px);
+        }
+        .usage-bar {
+            background: #e5e7eb;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .usage-fill {
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .plan-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .plan-free { background: #f3f4f6; color: #374151; }
+        .plan-basic { background: #dbeafe; color: #1d4ed8; }
+        .plan-pro { background: #dcfce7; color: #166534; }
+        .plan-team { background: #fef3c7; color: #92400e; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation Header -->
+    <nav class="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-xl sm:text-2xl font-bold text-gray-900 transition-all duration-300 hover:scale-105">
+                        imgtojpg.org
+                    </a>
+                </div>
+                <ul class="hidden sm:flex items-center space-x-4 lg:space-x-6">
+                    <li><a href="/" class="text-gray-700 hover:text-gray-900 font-medium transition-all duration-200 hover:scale-105">Home</a></li>
+                    <li><a href="blog.html" class="text-gray-700 hover:text-gray-900 font-medium transition-all duration-200 hover:scale-105">Blog</a></li>
+                    <li><a href="/camera-raw-converter.html" class="text-gray-700 hover:text-gray-900 font-medium transition-all duration-200 hover:scale-105">Camera Raw</a></li>
+                    <li><a href="/pricing.html" class="text-gray-700 hover:text-gray-900 font-medium transition-all duration-200 hover:scale-105">Pricing</a></li>
+                    <li><a href="/dashboard.html" class="text-blue-600 font-semibold">Dashboard</a></li>
+                </ul>
+                <div class="hidden sm:flex items-center ml-4">
+                    <button id="signout-btn" class="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm" aria-label="Sign out of account" style="min-width: 44px; min-height: 44px;">
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="min-h-screen flex items-center justify-center">
+        <div class="text-center">
+            <div class="loading-spinner mb-4" style="display: block;"></div>
+            <p class="text-gray-600">Loading your dashboard...</p>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashboard-content" class="hidden">
+        <!-- Header -->
+        <div class="bg-white py-8">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+                        <p class="text-gray-600">Welcome back, <span id="user-name">User</span></p>
+                    </div>
+                    <div class="text-right">
+                        <div class="plan-badge" id="current-plan-badge">Free Plan</div>
+                        <p class="text-sm text-gray-500 mt-1" id="plan-expires">No expiration</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="container mx-auto px-4 pb-12">
+            <!-- Usage Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Normal Conversions -->
+                <div class="dashboard-card bg-white rounded-xl p-6 border border-gray-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">Normal Conversions</h3>
+                        <span class="text-2xl">🔄</span>
+                    </div>
+                    <div class="mb-3">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span id="normal-used">0</span>
+                            <span id="normal-limit">50</span>
+                        </div>
+                        <div class="usage-bar">
+                            <div class="usage-fill" id="normal-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500" id="normal-period">This month</p>
+                </div>
+
+                <!-- RAW Conversions -->
+                <div class="dashboard-card bg-white rounded-xl p-6 border border-gray-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">RAW Conversions</h3>
+                        <span class="text-2xl">📷</span>
+                    </div>
+                    <div class="mb-3">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span id="raw-used">0</span>
+                            <span id="raw-limit">5</span>
+                        </div>
+                        <div class="usage-bar">
+                            <div class="usage-fill" id="raw-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500" id="raw-period">This month</p>
+                </div>
+
+                <!-- Next Billing -->
+                <div class="dashboard-card bg-white rounded-xl p-6 border border-gray-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">Next Billing</h3>
+                        <span class="text-2xl">💳</span>
+                    </div>
+                    <div class="mb-3">
+                        <div class="text-lg font-semibold text-gray-900" id="next-billing-amount">$0</div>
+                        <div class="text-sm text-gray-500" id="next-billing-date">No upcoming billing</div>
+                    </div>
+                    <button id="manage-billing-btn" class="text-blue-600 hover:text-blue-700 text-sm font-medium" aria-label="Manage billing and subscription" style="min-width: 44px; min-height: 44px;">
+                        Manage Billing
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Upgrade Plan -->
+                <div class="dashboard-card bg-white rounded-xl p-6 border border-gray-200" id="upgrade-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">Upgrade Plan</h3>
+                        <span class="text-2xl">⚡</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Get more conversions and priority support</p>
+                    <a href="/pricing.html" class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                        View Plans
+                    </a>
+                </div>
+
+                <!-- Quick Convert -->
+                <div class="dashboard-card bg-white rounded-xl p-6 border border-gray-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">Quick Convert</h3>
+                        <span class="text-2xl">🚀</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Start converting your images right now</p>
+                    <a href="/camera-raw-converter.html" class="inline-block bg-gray-100 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                        Start Converting
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="font-semibold text-gray-900">Recent Activity</h3>
+                </div>
+                <div id="recent-activity">
+                    <div class="px-6 py-8 text-center text-gray-500">
+                        <div class="loading-spinner mb-4" id="activity-loading"></div>
+                        <p>Loading recent activity...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Required State -->
+    <div id="auth-required" class="hidden min-h-screen flex items-center justify-center">
+        <div class="text-center max-w-md mx-auto px-4">
+            <div class="mb-6">
+                <span class="text-6xl">🔐</span>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Sign In Required</h2>
+            <p class="text-gray-600 mb-6">Please sign in to access your dashboard</p>
+            <div class="space-y-3">
+                <button id="google-signin-btn" class="w-full bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors" aria-label="Sign in with Google" style="min-width: 44px; min-height: 44px;">
+                    Continue with Google
+                </button>
+                <a href="/pricing.html" class="block w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors text-center">
+                    View Pricing Plans
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer - Adobe Style -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">imgtojpg.org</h4>
+                    <p class="text-gray-400 text-sm">Fast, secure, and professional image conversion for everyone.</p>
+                </div>
+                
+                <div>
+                    <h5 class="font-semibold mb-3">Features</h5>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="/heic-to-jpg.html" class="hover:text-white transition-colors duration-200">HEIC to JPG Converter</a></li>
+                        <li><a href="/png-to-jpg.html" class="hover:text-white transition-colors duration-200">PNG to JPG Converter</a></li>
+                        <li><a href="/webp-to-jpg.html" class="hover:text-white transition-colors duration-200">WebP to JPG Converter</a></li>
+                        <li><a href="/tiff-to-jpg.html" class="hover:text-white transition-colors duration-200">TIFF to JPG Converter</a></li>
+                        <li><a href="/camera-raw-converter.html" class="hover:text-white transition-colors duration-200">Camera Raw Converter</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h5 class="font-semibold mb-3">Reverse Converters</h5>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to HEIC Converter</a></li>
+                        <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to PNG Converter</a></li>
+                        <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to WebP Converter</a></li>
+                        <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to TIFF Converter</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h5 class="font-semibold mb-3">Support</h5>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="/help-center.html" class="hover:text-white transition-colors duration-200">Help Center</a></li>
+                        <li><a href="/contact.html" class="hover:text-white transition-colors duration-200">Contact Us</a></li>
+                        <li><a href="/privacy-policy.html" class="hover:text-white transition-colors duration-200">Privacy Policy</a></li>
+                        <li><a href="/terms-of-use.html" class="hover:text-white transition-colors duration-200">Terms of Use</a></li>
+                        <li><a href="/cancellation-policy.html" class="hover:text-white transition-colors duration-200">Cancellation Policy</a></li>
+                        <li><a href="/shipping-policy.html" class="hover:text-white transition-colors duration-200">Shipping Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h5 class="font-semibold mb-3">Connect</h5>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="/blog.html" class="hover:text-white transition-colors duration-200">Blog</a></li>
+                        <li><a href="/about.html" class="hover:text-white transition-colors duration-200">About Us</a></li>
+                        <li><a href="https://www.linkedin.com/company/elephic/" target="_blank" class="hover:text-white transition-colors duration-200">💼 LinkedIn</a></li>
+                        <li><a href="https://www.instagram.com/imgtojpg/" target="_blank" class="hover:text-white transition-colors duration-200">📷 Instagram</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 pt-8 text-center">
+                <p class="text-gray-400 text-sm">© 2025 imgtojpg.org. A product of <a href="/elephic-technologies.html" class="font-semibold text-gray-300 hover:text-white transition-colors">Elephic Technologies</a></p>
+                <div class="mt-4 text-center">
+                    <p class="text-gray-400 text-sm">Made with <span class="text-lg heart-red">❤</span> in Gurugram, India</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Firebase configuration
+        let firebaseConfig = {};
+        let firebaseInitialized = false;
+        let auth = null;
+        let currentUser = null;
+        let userSubscription = null;
+
+        // Load Firebase config and initialize
+        async function initFirebase() {
+            try {
+                const response = await fetch('/api/firebase-config');
+                firebaseConfig = await response.json();
+                
+                firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                firebaseInitialized = true;
+                
+                // Auth state listener
+                auth.onAuthStateChanged(async (user) => {
+                    currentUser = user;
+                    if (user) {
+                        await loadDashboard();
+                    } else {
+                        showAuthRequired();
+                    }
+                });
+            } catch (error) {
+                console.error('Firebase initialization failed:', error);
+                showAuthRequired();
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                showLoading();
+                console.log('🔄 Loading dashboard for user:', currentUser.email);
+                
+                // Get ID token
+                const idToken = await currentUser.getIdToken();
+                console.log('🔑 Got Firebase ID token:', idToken ? 'YES' : 'NO');
+                
+                // Fetch subscription data
+                console.log('📡 Fetching subscription data...');
+                const response = await fetch('/api/payments/subscription', {
+                    headers: {
+                        'Authorization': `Bearer ${idToken}`
+                    }
+                });
+                
+                console.log('📡 Response status:', response.status);
+                const data = await response.json();
+                console.log('📡 Subscription data received:', data);
+                
+                if (data.success) {
+                    userSubscription = data;
+                    // Store subscription data globally for billing management
+                    window.currentSubscription = data.subscription;
+                    updateDashboard(data);
+                    await loadRecentActivity();
+                } else {
+                    throw new Error(data.message || 'Failed to load subscription data');
+                }
+                
+                showDashboard();
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+                showError('Failed to load dashboard data. Please try again.');
+            }
+        }
+
+        // Update dashboard with user data
+        function updateDashboard(data) {
+            // User info
+            document.getElementById('user-name').textContent = currentUser.displayName || currentUser.email.split('@')[0];
+            
+            // Current plan
+            const planBadge = document.getElementById('current-plan-badge');
+            const planType = data.currentPlan || 'free';
+            planBadge.textContent = planType.charAt(0).toUpperCase() + planType.slice(1) + ' Plan';
+            planBadge.className = `plan-badge plan-${planType}`;
+            
+            // Plan expiration
+            const planExpires = document.getElementById('plan-expires');
+            if (data.planExpiresAt) {
+                const expiryDate = new Date(data.planExpiresAt._seconds * 1000);
+                planExpires.textContent = `Renews ${expiryDate.toLocaleDateString()}`;
+            } else if (data.subscription && data.subscription.current_period_end) {
+                const expiryDate = new Date(data.subscription.current_period_end._seconds * 1000);
+                planExpires.textContent = `Renews ${expiryDate.toLocaleDateString()}`;
+            } else {
+                planExpires.textContent = 'No expiration';
+            }
+            
+            // Usage data
+            const usage = data.usage || {};
+            const normalUsed = parseInt(usage.normal_conversions_used || usage.conversions_used || 0);
+            const rawUsed = parseInt(usage.raw_conversions_used || 0);
+            
+            // Get plan limits
+            const planLimits = getPlanLimits(planType);
+            
+            // Update Normal Conversions
+            document.getElementById('normal-used').textContent = normalUsed;
+            document.getElementById('normal-limit').textContent = planLimits.normal === -1 ? '∞' : planLimits.normal;
+            const normalPercent = planLimits.normal === -1 ? 0 : Math.min((normalUsed / planLimits.normal) * 100, 100);
+            document.getElementById('normal-bar').style.width = normalPercent + '%';
+            
+            // Update RAW Conversions
+            document.getElementById('raw-used').textContent = rawUsed;
+            document.getElementById('raw-limit').textContent = planLimits.raw === -1 ? '∞' : planLimits.raw;
+            const rawPercent = planLimits.raw === -1 ? 0 : Math.min((rawUsed / planLimits.raw) * 100, 100);
+            document.getElementById('raw-bar').style.width = rawPercent + '%';
+            
+            // Update billing period text
+            const period = planType === 'free' ? 'This week' : 'This month';
+            document.getElementById('normal-period').textContent = period;
+            document.getElementById('raw-period').textContent = period;
+            
+            // Next billing
+            if (planType === 'basic') {
+                document.getElementById('next-billing-amount').textContent = '₹149';
+                if (data.planExpiresAt) {
+                    const nextBilling = new Date(data.planExpiresAt._seconds * 1000);
+                    document.getElementById('next-billing-date').textContent = nextBilling.toLocaleDateString();
+                }
+            } else if (planType === 'pro') {
+                document.getElementById('next-billing-amount').textContent = '₹399';
+                if (data.planExpiresAt) {
+                    const nextBilling = new Date(data.planExpiresAt._seconds * 1000);
+                    document.getElementById('next-billing-date').textContent = nextBilling.toLocaleDateString();
+                }
+            } else if (planType === 'team') {
+                document.getElementById('next-billing-amount').textContent = '₹1,249';
+                if (data.planExpiresAt) {
+                    const nextBilling = new Date(data.planExpiresAt._seconds * 1000);
+                    document.getElementById('next-billing-date').textContent = nextBilling.toLocaleDateString();
+                }
+            } else {
+                document.getElementById('next-billing-amount').textContent = '₹0';
+                document.getElementById('next-billing-date').textContent = 'No upcoming billing';
+            }
+            
+            // Hide upgrade card for team plan
+            if (planType === 'team') {
+                document.getElementById('upgrade-card').style.display = 'none';
+            }
+        }
+
+        // Get plan limits
+        function getPlanLimits(planType) {
+            const limits = {
+                free: { normal: 50, raw: 5 },
+                basic: { normal: 300, raw: 200 },
+                pro: { normal: 1500, raw: 1500 },
+                team: { normal: -1, raw: -1 }
+            };
+            return limits[planType] || limits.free;
+        }
+
+        // Load recent activity
+        async function loadRecentActivity() {
+            try {
+                const idToken = await currentUser.getIdToken();
+                const response = await fetch('/api/payments/history?limit=5', {
+                    headers: {
+                        'Authorization': `Bearer ${idToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.payments.length > 0) {
+                    displayRecentActivity(data.payments);
+                } else {
+                    displayNoActivity();
+                }
+            } catch (error) {
+                console.error('Failed to load recent activity:', error);
+                displayNoActivity();
+            }
+        }
+
+        // Display recent activity
+        function displayRecentActivity(payments) {
+            const container = document.getElementById('recent-activity');
+            
+            if (payments.length === 0) {
+                displayNoActivity();
+                return;
+            }
+            
+            const html = payments.map(payment => {
+                const date = new Date(payment.created_at).toLocaleDateString();
+                const amount = '$' + Math.abs(payment.amount).toFixed(2);
+                const type = payment.transaction_type === 'refund' ? 'Refund' : 'Payment';
+                const status = payment.status === 'completed' ? '✅' : payment.status === 'failed' ? '❌' : '⏳';
+                
+                return `
+                    <div class="px-6 py-4 border-b border-gray-100 last:border-b-0">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="font-medium text-gray-900">${type} - ${payment.plan_type || 'Subscription'}</div>
+                                <div class="text-sm text-gray-500">${date}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-semibold text-gray-900">${amount}</div>
+                                <div class="text-sm">${status} ${payment.status}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+        }
+
+        // Display no activity message
+        function displayNoActivity() {
+            document.getElementById('recent-activity').innerHTML = `
+                <div class="px-6 py-8 text-center text-gray-500">
+                    <span class="text-4xl mb-4 block">📊</span>
+                    <p>No recent activity</p>
+                    <p class="text-sm mt-2">Your payment history will appear here</p>
+                </div>
+            `;
+        }
+
+        // Manage billing - Show modal
+        async function manageBilling() {
+            // Show the billing modal
+            const modal = document.getElementById('billing-modal');
+            modal.classList.remove('hidden');
+            
+            // Update subscription details in modal
+            updateSubscriptionDetailsInModal();
+        }
+        
+        // Update subscription details in modal
+        function updateSubscriptionDetailsInModal() {
+            const subscription = window.currentSubscription;
+            const detailsContainer = document.getElementById('subscription-details');
+            
+            if (subscription) {
+                const planType = subscription.plan_type || 'Free';
+                const status = subscription.status || 'Active';
+                
+                // Get next billing date from current_period_end
+                let nextBilling = 'N/A';
+                if (subscription.current_period_end && subscription.current_period_end._seconds) {
+                    const expiryDate = new Date(subscription.current_period_end._seconds * 1000);
+                    nextBilling = expiryDate.toLocaleDateString();
+                }
+                
+                // Get amount from price_inr
+                const amount = subscription.price_inr || '0';
+                
+                detailsContainer.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Plan:</span>
+                            <span class="font-semibold text-gray-900">${planType}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Status:</span>
+                            <span class="font-semibold ${status === 'Active' ? 'text-green-600' : 'text-red-600'}">${status}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Next Billing:</span>
+                            <span class="font-semibold text-gray-900">${nextBilling}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Amount:</span>
+                            <span class="font-semibold text-gray-900">₹${amount}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                detailsContainer.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="text-gray-500 mb-2">No active subscription found</div>
+                        <div class="text-sm text-gray-400">You are currently on the free plan</div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Close billing modal
+        function closeBillingModal() {
+            const modal = document.getElementById('billing-modal');
+            modal.classList.add('hidden');
+        }
+        
+        // Cancel subscription
+        async function cancelSubscription() {
+            // Show confirmation dialog
+            if (!confirm('Are you sure you want to cancel your subscription? This action cannot be undone.')) {
+                return;
+            }
+            
+            try {
+                const idToken = await currentUser.getIdToken();
+                const response = await fetch('/api/payments/subscription/cancel', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${idToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ immediately: false })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Close modal and show success message
+                    closeBillingModal();
+                    
+                    // Show success notification
+                    showNotification('Subscription cancellation has been initiated. You will receive a confirmation email shortly.', 'success');
+                    
+                    // Refresh the page to update subscription status after a delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    showNotification(`Failed to cancel subscription: ${data.message || 'Please try again.'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Cancel subscription error:', error);
+                showNotification('Failed to cancel subscription. Please contact support@imgtojpg.org for assistance.', 'error');
+            }
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Remove notification after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+        }
+
+        // Direct Google sign in - No dependencies
+        async function signInWithGoogle() {
+            try {
+                console.log('🔄 Starting Google sign-in...');
+                
+                // Check if Firebase is initialized
+                if (!firebaseInitialized || !firebase || !auth) {
+                    throw new Error('Firebase not initialized. Please refresh the page.');
+                }
+                
+                // Create Google Auth Provider
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('email');
+                provider.addScope('profile');
+                
+                // Sign in with popup
+                const result = await auth.signInWithPopup(provider);
+                console.log('✅ Google sign-in successful:', result.user.email);
+                
+            } catch (error) {
+                console.error('❌ Google sign-in failed:', error);
+                let errorMessage = 'Google sign-in failed. Please try again.';
+                
+                if (error.code === 'auth/popup-blocked') {
+                    errorMessage = 'Popup was blocked by your browser. Please allow popups and try again.';
+                } else if (error.code === 'auth/popup-closed-by-user') {
+                    errorMessage = 'Sign-in was cancelled. Please try again.';
+                } else if (error.code === 'auth/unauthorized-domain') {
+                    errorMessage = 'This domain is not authorized. Please contact support.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                alert(errorMessage);
+            }
+        }
+
+        // Sign out
+        function signOut() {
+            auth.signOut();
+        }
+
+        // Show different states
+        function showLoading() {
+            document.getElementById('loading-state').classList.remove('hidden');
+            document.getElementById('dashboard-content').classList.add('hidden');
+            document.getElementById('auth-required').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('dashboard-content').classList.remove('hidden');
+            document.getElementById('auth-required').classList.add('hidden');
+        }
+
+        function showAuthRequired() {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('dashboard-content').classList.add('hidden');
+            document.getElementById('auth-required').classList.remove('hidden');
+        }
+
+        function showError(message) {
+            document.getElementById('loading-state').innerHTML = `
+                <div class="text-center">
+                    <span class="text-6xl mb-4 block">⚠️</span>
+                    <p class="text-gray-600">${message}</p>
+                    <button onclick="window.location.reload()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" aria-label="Refresh page" style="min-width: 44px; min-height: 44px;">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            initFirebase();
+            
+            // Event listeners
+            document.getElementById('signout-btn').addEventListener('click', signOut);
+            document.getElementById('manage-billing-btn').addEventListener('click', manageBilling);
+            document.getElementById('google-signin-btn').addEventListener('click', signInWithGoogle);
+            
+            // Billing modal event listeners
+            document.getElementById('close-billing-modal').addEventListener('click', closeBillingModal);
+            document.getElementById('cancel-subscription-btn').addEventListener('click', cancelSubscription);
+            document.getElementById('contact-support-btn').addEventListener('click', () => {
+                window.location.href = 'mailto:support@imgtojpg.org?subject=Billing Support';
+            });
+            
+            // Close modal when clicking outside
+            document.getElementById('billing-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'billing-modal') {
+                    closeBillingModal();
+                }
+            });
+        });
+    </script>
+
+    <!-- Billing Management Modal -->
+    <div id="billing-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-900">Billing Management</h3>
+                <button id="close-billing-modal" class="text-gray-400 hover:text-gray-600 transition-colors" aria-label="Close billing modal" style="min-width: 44px; min-height: 44px;">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-6">
+                <!-- Current Subscription Card -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-6">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-2">Current Subscription</h4>
+                    <div id="subscription-details">
+                        <div class="text-sm text-gray-600 mb-1">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="space-y-3">
+                    <button id="cancel-subscription-btn" class="w-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg px-4 py-3 font-medium transition-colors">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Cancel Subscription
+                    </button>
+                    
+                    <button id="contact-support-btn" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg px-4 py-3 font-medium transition-colors">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        Contact Support
+                    </button>
+                </div>
+
+                <!-- Help Text -->
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <p class="text-sm text-gray-600">
+                        <strong>Need help?</strong> Our support team is here to assist you with any billing questions or changes to your subscription.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

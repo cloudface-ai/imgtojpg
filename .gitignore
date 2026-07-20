@@ -160,6 +160,13 @@ public/converted/
 public/converted_images.zip
 .DS_Store
 
+# Secrets and local credentials
+firebase-service-account.json
+
+# Large local artifacts
+AWSCLIV2.pkg
+heic-to-jpg-clean.zip
+
 # Email configuration (contains sensitive credentials)
 email-config.js
 

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Cleanup Dashboard - imgtojpg.org</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #138496;
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .log-container {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .log-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .log-content {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="refresh-indicator" id="refreshIndicator">
+        <div class="loading"></div> Refreshing...
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🧹 File Cleanup Dashboard</h1>
+            <p>Monitor and manage automatic file deletion system</p>
+        </div>
+        
+        <div class="content">
+            <div id="statusMessage" class="status"></div>
+            
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalFiles">-</div>
+                    <div class="stat-label">Total Files</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalSize">-</div>
+                    <div class="stat-label">Total Size</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="uploadsFiles">-</div>
+                    <div class="stat-label">Upload Files</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="convertedFiles">-</div>
+                    <div class="stat-label">Converted Files</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-primary" onclick="refreshStats()">
+                    🔄 Refresh Stats
+                </button>
+                <button class="btn btn-success" onclick="runManualCleanup()">
+                    🧹 Run Manual Cleanup
+                </button>
+                <button class="btn btn-info" onclick="viewLogs()">
+                    📋 View Logs
+                </button>
+                <a href="/" class="btn btn-primary">🏠 Back to Home</a>
+            </div>
+            
+            <div class="log-container" id="logContainer" style="display: none;">
+                <div class="log-title">System Logs</div>
+                <div class="log-content" id="logContent">Loading logs...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let refreshInterval;
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshStats();
+            
+            // Auto-refresh every 30 seconds
+            refreshInterval = setInterval(refreshStats, 30000);
+            
+            showStatus('Dashboard loaded successfully', 'success');
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+        
+        async function refreshStats() {
+            try {
+                showRefreshIndicator(true);
+                
+                const response = await fetch('/api/cleanup/stats');
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateStatsDisplay(result.data);
+                    showStatus('Stats updated successfully', 'success');
+                } else {
+                    showStatus('Failed to load stats: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showStatus('Error loading stats: ' + error.message, 'error');
+            } finally {
+                showRefreshIndicator(false);
+            }
+        }
+        
+        async function runManualCleanup() {
+            try {
+                showStatus('Running manual cleanup...', 'info');
+                
+                const response = await fetch('/api/cleanup/manual', {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Manual cleanup completed successfully', 'success');
+                    updateStatsDisplay(result.data);
+                } else {
+                    showStatus('Manual cleanup failed: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showStatus('Error running manual cleanup: ' + error.message, 'error');
+            }
+        }
+        
+        function updateStatsDisplay(stats) {
+            if (!stats) return;
+            
+            document.getElementById('totalFiles').textContent = stats.total.files || 0;
+            document.getElementById('totalSize').textContent = stats.total.sizeFormatted || '0 B';
+            document.getElementById('uploadsFiles').textContent = stats.uploads.files || 0;
+            document.getElementById('convertedFiles').textContent = stats.converted.files || 0;
+        }
+        
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'block';
+            
+            // Auto-hide success messages after 3 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 3000);
+            }
+        }
+        
+        function showRefreshIndicator(show) {
+            const indicator = document.getElementById('refreshIndicator');
+            indicator.style.display = show ? 'block' : 'none';
+        }
+        
+        function viewLogs() {
+            const logContainer = document.getElementById('logContainer');
+            const logContent = document.getElementById('logContent');
+            
+            if (logContainer.style.display === 'none') {
+                logContainer.style.display = 'block';
+                logContent.textContent = 'Logs will be available in a future update.\n\nFor now, check the server console for cleanup logs.';
+            } else {
+                logContainer.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

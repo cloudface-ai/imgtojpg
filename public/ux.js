@@ -1,6 +1,88 @@
 (function () {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
+  // Attach Firebase ID token automatically to same-origin /api requests
+  (function attachAuthTokenToApiFetch(){
+    try {
+      const originalFetch = window.fetch.bind(window);
+
+      async function getIdTokenMaybe() {
+        try {
+          if (!window.firebase || !window.firebase.apps || window.firebase.apps.length === 0 || !window.firebase.auth) return null;
+          const user = window.firebase.auth().currentUser;
+          if (!user) return null;
+          return await user.getIdToken();
+        } catch (_) { return null; }
+      }
+
+      window.authFetch = async function(url, options = {}){
+        const headers = new Headers(options.headers || {});
+        if (!headers.has('Authorization')) {
+          const token = await getIdTokenMaybe();
+          if (token) headers.set('Authorization', `Bearer ${token}`);
+        }
+        return originalFetch(url, { ...options, headers });
+      };
+
+      window.fetch = async function(input, init){
+        try {
+          const url = typeof input === 'string' ? input : (input && input.url) || '';
+          const isApi = /^\/api(\/?|$)/.test(url);
+          if (isApi) {
+            const headers = new Headers((init && init.headers) || {});
+            if (!headers.has('Authorization')) {
+              const token = await getIdTokenMaybe();
+              if (token) headers.set('Authorization', `Bearer ${token}`);
+              const nextInit = Object.assign({}, init, { headers });
+              return originalFetch(input, nextInit);
+            }
+          }
+        } catch (_) { /* fall through to original fetch */ }
+        return originalFetch(input, init);
+      };
+
+      // Clean Google Authentication Implementation
+      try {
+        if (window.firebase && window.firebase.apps && window.firebase.apps.length > 0 && window.firebase.auth) {
+          // Set persistent session
+          window.firebase.auth().setPersistence(window.firebase.auth.Auth.Persistence.LOCAL);
+          
+          // Simple auth state listener
+          window.firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+              console.log('User signed in:', user.email);
+            } else {
+              console.log('User signed out');
+            }
+          });
+          
+          // Clean Google sign-in function
+          window.signInWithGoogle = function() {
+            const provider = new window.firebase.auth.GoogleAuthProvider();
+            provider.addScope('email');
+            provider.addScope('profile');
+            
+            return window.firebase.auth().signInWithPopup(provider)
+              .then(function(result) {
+                console.log('Google sign-in successful:', result.user.email);
+                return result;
+              })
+              .catch(function(error) {
+                console.error('Google sign-in failed:', error.code, error.message);
+                if (error.code === 'auth/popup-blocked') {
+                  console.log('Popup blocked, trying redirect...');
+                  return window.firebase.auth().signInWithRedirect(provider);
+                }
+                throw error;
+              });
+          };
+        }
+      } catch(error) {
+        console.error('Firebase auth setup failed:', error);
+      }
+    } catch(_) {}
+  })();
+
   // Respect reduced motion preference globally
   (function injectReducedMotionCSS(){
     try{
@@ -181,7 +263,7 @@
       badge.style.display = 'flex';
       badge.style.alignItems = 'center';
       const text = document.createElement('span');
-      text.textContent = 'Beta · Anonymous usage helps improve the tool';
+      text.textContent = 'Anonymous usage helps improve the tool';
       const toggle = document.createElement('button');
       toggle.textContent = '‹';
       toggle.title = 'Collapse';
@@ -274,9 +356,12 @@
     });
   })();
 
-  // Small “Beta” badge next to brand name
+  // Small "Beta" badge next to brand name - DISABLED
   (function headerBetaBadge(){
     try{
+      // Beta badge completely disabled across all pages
+      return;
+      
       const candidates = Array.from(document.querySelectorAll('a, div, span'))
         .filter(el => /imgtojpg\.org/i.test(el.textContent || ''));
       if (!candidates.length) return;

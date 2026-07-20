@@ -26,7 +26,7 @@
     <meta property="og:url" content="https://imgtojpg.org/privacy-policy.html">
     <meta property="og:title" content="Privacy Policy - Data Protection & Privacy">
     <meta property="og:description" content="Privacy Policy for imgtojpg.org by Vinod Kumar. Learn how we protect your data and maintain your privacy.">
-    <meta property="og:image" content="https://imgtojpg.org/Vinod Kumar.png">
+    <meta property="og:image" content="https://imgtojpg.org/imgtojpg_logo_new.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="imgtojpg.org">
@@ -37,7 +37,7 @@
     <meta property="twitter:url" content="https://imgtojpg.org/privacy-policy.html">
     <meta property="twitter:title" content="Privacy Policy - Data Protection & Privacy">
     <meta property="twitter:description" content="Privacy Policy for imgtojpg.org by Vinod Kumar. Learn how we protect your data and maintain your privacy.">
-    <meta property="twitter:image" content="https://imgtojpg.org/Vinod Kumar.png">
+    <meta property="twitter:image" content="https://imgtojpg.org/imgtojpg_logo_new.png">
     
     <!-- Canonical and Alternate Languages -->
     <link rel="canonical" href="https://imgtojpg.org/privacy-policy.html" />
@@ -49,18 +49,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- Favicon and App Icons -->
-    <link rel="icon" type="image/png" href="/favicon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/style.css">
     <script src="/analytics-tracker.min.js"></script>
     <script>
         tailwind.config = {
@@ -75,39 +66,7 @@
             }
         }
     </script>
-    <style>
-        .coffee-button {
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-            color: white;
-            border-radius: 8px;
-            padding: 12px 24px;
-            font-weight: 600;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .coffee-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .coffee-button:hover::before {
-            left: 100%;
-        }
-        
-        .coffee-button:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
-        }
-    </style>
+    <link rel="stylesheet" href="/custom.css">
 
     <!-- Structured Data for SEO -->
     <script type="application/ld+json">
@@ -143,7 +102,7 @@
       "alternateName": "Image to JPG Converter",
       "description": "Professional image conversion service providing fast, secure, and reliable conversion tools",
       "url": "https://imgtojpg.org",
-      "logo": "https://imgtojpg.org/favicon.png",
+      "logo": "https://imgtojpg.org/imgtojpg_logo_new.png",
       "sameAs": [
         "https://linqrius.com"
       ],
@@ -182,7 +141,7 @@
 <body class="bg-gray-50">
     <!-- Navigation Header -->
     <nav class="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="container-responsive">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
                     <a href="/" class="text-xl sm:text-2xl font-bold text-gray-900 transition-all duration-300 hover:scale-105">
@@ -192,8 +151,26 @@
                 <ul class="hidden sm:flex items-center space-x-4 lg:space-x-6">
                     <li><a href="/" class="text-gray-700 hover:text-gray-900 font-medium transition-all duration-200 hover:scale-105">Home</a></li>
                     <li><a href="blog.html" class="text-gray-700 hover:text-gray-900 font-medium transition-all duration-200 hover:scale-105">Blog</a></li>
-                    <li><button class="coffee-button">☕ Buy me a coffee</button></li>
+                    <li><a href="/camera-raw-converter.html" class="text-gray-700 hover:text-gray-900 font-medium transition-all duration-200 hover:scale-105">Camera Raw</a></li>
+                    <li><a href="/pricing.html" class="text-gray-700 hover:text-gray-900 font-medium transition-all duration-200 hover:scale-105">Pricing</a></li>
                 </ul>
+                
+                <!-- Mobile menu button -->
+                <button id="mobileMenuButton" class="sm:hidden p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                
+                <!-- Mobile menu -->
+                <div id="mobileMenu" class="sm:hidden absolute top-16 left-0 w-full bg-white border-b border-gray-200 hidden">
+                    <ul class="p-4 space-y-4">
+                        <li><a href="/" class="block text-gray-700 hover:text-gray-900 font-medium transition-all duration-200">Home</a></li>
+                        <li><a href="blog.html" class="block text-gray-700 hover:text-gray-900 font-medium transition-all duration-200">Blog</a></li>
+                        <li><a href="/camera-raw-converter.html" class="block text-gray-700 hover:text-gray-900 font-medium transition-all duration-200">Camera Raw</a></li>
+                        <li><a href="/pricing.html" class="block text-gray-700 hover:text-gray-900 font-medium transition-all duration-200">Pricing</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </nav>
@@ -203,6 +180,9 @@
         <div class="text-center mb-12">
             <h1 class="text-4xl font-bold text-gray-900 mb-4">Privacy Policy</h1>
             <p class="text-xl text-gray-600">Last updated: January 2025</p>
+            <p class="mt-4 text-gray-700"><strong>Operator:</strong> Vinod Kumar (Doing Business As)</p>
+            <p class="text-gray-700"><strong>Registered Address:</strong> Plot No 64, Sector 44, Gurugram, Haryana 122003</p>
+            <p class="text-gray-700"><strong>Contact:</strong> <a href="mailto:support@imgtojpg.org" class="text-adobe-blue">support@imgtojpg.org</a> · +91 98186 86723</p>
         </div>
 
         <div class="bg-white rounded-lg shadow-lg p-8 space-y-8">
@@ -258,11 +238,13 @@
                 <h2 class="text-2xl font-bold text-gray-900 mb-4">4. File Handling and Privacy</h2>
                 <p class="text-gray-600 mb-4">We respect your privacy and handle your files with care:</p>
                 <ul class="list-disc list-inside text-gray-600 space-y-2 ml-4">
-                    <li>Files are processed securely and temporarily</li>
-                    <li>Converted files are automatically deleted after processing</li>
+                    <li>Files are processed securely on our servers temporarily</li>
+                    <li><strong>All files are automatically deleted within 60 minutes</strong> of upload</li>
                     <li>We do not store or access your original files permanently</li>
-                    <li>All file transfers use secure connections</li>
+                    <li>All file transfers use HTTPS encryption</li>
                     <li>Your images are never shared with third parties</li>
+                    <li>No file content scanning or analysis is performed</li>
+                    <li>Files are deleted from our servers regardless of download status</li>
                 </ul>
             </div>
 
@@ -285,7 +267,7 @@
             <div>
                 <h2 class="text-2xl font-bold text-gray-900 mb-4">7. Data Retention</h2>
                 <p class="text-gray-600 mb-4">The Company will retain Your Personal Data only for as long as is necessary for the purposes set out in this Privacy Policy. We will retain and use Your Personal Data to the extent necessary to comply with our legal obligations, resolve disputes, and enforce our legal agreements and policies.</p>
-                <p class="text-gray-600">Converted image files are automatically deleted after processing to ensure your privacy.</p>
+                <p class="text-gray-600">Converted image files are automatically deleted within 60 minutes of upload to ensure your privacy. This deletion occurs regardless of whether you download the files or not.</p>
             </div>
 
             <div>
@@ -316,7 +298,7 @@
                 <h2 class="text-2xl font-bold text-gray-900 mb-4">11. Contact Us</h2>
                 <p class="text-gray-600 mb-4">If you have any questions about this Privacy Policy, You can contact us:</p>
                 <ul class="list-disc list-inside text-gray-600 space-y-2 ml-4">
-                    <li>By email: nerdykeeda@gmail.com</li>
+                    <li>By email: support@imgtojpg.org</li>
                     <li>Through our <a href="contact.html" class="text-adobe-blue hover:underline">contact page</a></li>
                 </ul>
             </div>
@@ -336,26 +318,26 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
                 <div>
                     <h4 class="text-lg font-semibold mb-4">imgtojpg.org</h4>
-                    <p class="text-gray-400 text-sm">Free, fast, and secure image conversion for everyone.</p>
+                    <p class="text-gray-400 text-sm">Fast, secure, and professional image conversion for everyone.</p>
                 </div>
                 
                 <div>
                     <h5 class="font-semibold mb-3">Features</h5>
                     <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="/heic-to-jpg.html" class="hover:text-white transition-colors duration-200">HEIC to JPG</a></li>
-                        <li><a href="/png-to-jpg.html" class="hover:text-white transition-colors duration-200">PNG to JPG</a></li>
-                        <li><a href="/webp-to-jpg.html" class="hover:text-white transition-colors duration-200">WebP to JPG</a></li>
-                        <li><a href="/tiff-to-jpg.html" class="hover:text-white transition-colors duration-200">TIFF to JPG</a></li>
+                        <li><a href="/heic-to-jpg.html" class="hover:text-white transition-colors duration-200">HEIC to JPG Converter</a></li>
+                        <li><a href="/png-to-jpg.html" class="hover:text-white transition-colors duration-200">PNG to JPG Converter</a></li>
+                        <li><a href="/webp-to-jpg.html" class="hover:text-white transition-colors duration-200">WebP to JPG Converter</a></li>
+                        <li><a href="/tiff-to-jpg.html" class="hover:text-white transition-colors duration-200">TIFF to JPG Converter</a></li>
                     </ul>
                 </div>
                 
                 <div>
                     <h5 class="font-semibold mb-3">Reverse Converters</h5>
                     <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to HEIC</a></li>
-                        <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to PNG</a></li>
-                        <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to WebP</a></li>
-                        <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to TIFF</a></li>
+                        <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to HEIC Converter</a></li>
+                        <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to PNG Converter</a></li>
+                        <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to WebP Converter</a></li>
+                        <li><a href="/" class="hover:text-white transition-colors duration-200">JPG to TIFF Converter</a></li>
                     </ul>
                 </div>
                 
@@ -379,28 +361,15 @@
             </div>
             
             <div class="border-t border-gray-700 pt-8 text-center">
-                <p class="text-gray-400 text-sm">© 2025 imgtojpg.org. Powered by <span class="font-semibold text-gray-300">nerdykeeda</span></p>
+                <p class="text-gray-400 text-sm">© 2025 imgtojpg.org. A product of <a href="/elephic-technologies.html" class="font-semibold text-gray-300 hover:text-white transition-colors">Elephic Technologies</a></p>
                 <div class="mt-4 text-center">
                     <p class="text-gray-400 text-sm">Made with <span class="text-red-500 text-lg">❤</span> in Gurugram, India</p>
-                </div>
-                <div class="mt-4">
-                    <button class="bg-orange-500 text-white text-sm px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors">
-                        ☕ Buy me a coffee
-                    </button>
                 </div>
             </div>
         </div>
     </footer>
 
     <script>
-        // Coffee button functionality
-        document.querySelectorAll('button').forEach(button => {
-            if (button.textContent.includes('☕')) {
-                button.addEventListener('click', () => {
-                    window.open('https://buymeacoffee.com/spvinodmanb', '_blank');
-                });
-            }
-        });
     </script>
 </body>
 </html>

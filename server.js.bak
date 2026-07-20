@@ -1,0 +1,1307 @@
+// server.js
+// Load environment variables from .env file (for local development)
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
+const express = require('express');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+const archiver = require('archiver');
+const { v4: uuidv4 } = require('uuid');
+const { Worker } = require('worker_threads');
+const nodemailer = require('nodemailer');
+const compression = require('compression');
+
+// Subscription system imports
+const { admin, clientConfig } = require('./config/firebase');
+const Database = require('./config/firestore');
+const paymentsRouter = require('./routes/payments');
+
+// File cleanup system
+const fileCleanupManager = require('./utils/fileCleanup');
+const { optionalAuth, extractFileInfo, checkConversionQuota, logConversionUsage } = require('./middleware/auth');
+
+// Security packages
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const slowDown = require('express-slow-down');
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Security middleware - protect against spam and code theft
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.quilljs.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com", "https://cdnjs.cloudflare.com", "https://cdn.quilljs.com", "https://www.gstatic.com", "https://apis.google.com", "https://accounts.google.com", "https://secure.payu.in", "https://test.payu.in", "https://cdn.tailwindcss.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
+              connectSrc: ["'self'", "https://www.google-analytics.com", "https://accounts.google.com", "https://firestore.googleapis.com", "https://identitytoolkit.googleapis.com", "https://www.gstatic.com", "https://securetoken.googleapis.com", "https://ipapi.co", "https://firebase.googleapis.com", "https://api.exchangerate-api.com", "https://secure.payu.in", "https://test.payu.in"],
+      fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["https://accounts.google.com", "https://imgtojpg.firebaseapp.com", "https://secure.payu.in", "https://test.payu.in"],
+      formAction: ["'self'", "https://secure.payu.in", "https://test.payu.in"],
+    },
+  },
+  crossOriginOpenerPolicy: false, // Disable COOP to allow Google OAuth popups
+  crossOriginEmbedderPolicy: false, // Allow file downloads
+  crossOriginResourcePolicy: false // Allow cross-origin resources
+}));
+
+// Smart caching: cache static assets, no-cache for dynamic content
+app.use((req, res, next) => {
+  const url = req.url;
+  
+  // Cache SEO files (robots.txt, sitemap.xml)
+  if (url.match(/\/(robots\.txt|sitemap\.xml)$/)) {
+    res.set({
+      'Cache-Control': 'public, max-age=86400', // 24 hours
+      'Expires': new Date(Date.now() + 86400 * 1000).toUTCString()
+    });
+  }
+  // Cache static assets (images, CSS, JS, fonts, etc.)
+  else if (url.match(/\.(png|jpg|jpeg|gif|webp|svg|css|js|woff|woff2|ttf|eot|ico)$/)) {
+    res.set({
+      'Cache-Control': 'public, max-age=31536000', // 1 year
+      'Expires': new Date(Date.now() + 31536000 * 1000).toUTCString()
+    });
+  } 
+  // Cache HTML files for shorter period
+  else if (url.match(/\.html$/)) {
+    res.set({
+      'Cache-Control': 'public, max-age=3600', // 1 hour
+      'Expires': new Date(Date.now() + 3600 * 1000).toUTCString()
+    });
+  }
+  // No cache for dynamic content (API endpoints, converted files, etc.)
+  else {
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+  }
+  next();
+});
+
+// Rate limiting for conversion endpoint (prevent spam/abuse)
+const convertRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500, // limit each IP to 500 conversion requests per windowMs (much more reasonable)
+  message: {
+    success: false,
+    message: 'Too many conversion requests. Please try again in 15 minutes.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Slow down repeated requests (additional spam protection)
+const speedLimiter = slowDown({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  delayAfter: 100, // allow 100 requests per 15 minutes at full speed (much more reasonable)
+  delayMs: 200, // slow down subsequent requests by 200ms per request (less aggressive)
+});
+
+// General rate limiting for all endpoints
+const generalRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // limit each IP to 1000 requests per windowMs (much more reasonable)
+  message: {
+    success: false,
+    message: 'Too many requests. Please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Performance monitoring
+const getMemoryUsage = () => {
+  const used = process.memoryUsage();
+  return {
+    rss: Math.round(used.rss / 1024 / 1024 * 100) / 100,
+    heapTotal: Math.round(used.heapTotal / 1024 / 1024 * 100) / 100,
+    heapUsed: Math.round(used.heapUsed / 1024 / 1024 * 100) / 100,
+    external: Math.round(used.external / 1024 / 1024 * 100) / 100
+  };
+};
+
+// Log memory usage every 30 seconds
+setInterval(() => {
+  const mem = getMemoryUsage();
+  console.log(`📊 Memory Usage - RSS: ${mem.rss}MB, Heap: ${mem.heapUsed}/${mem.heapTotal}MB, External: ${mem.external}MB`);
+}, 30000);
+
+// Health check endpoint (bypasses all rate limiting)
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// Trust proxy for ALB (fix rate limiting behind load balancer)
+app.set('trust proxy', 1);
+
+// Initialize Firebase Admin SDK (non-blocking)
+try {
+  // Firebase Admin SDK is initialized in config/firebase.js
+  console.log('✅ Firebase Admin SDK initialized successfully');
+} catch (error) {
+  console.error('❌ Firebase Admin SDK initialization failed:', error.message);
+}
+
+// Security middleware - protect against spam and code theft
+app.use(generalRateLimit); // Apply general rate limiting to all routes
+app.use(speedLimiter); // Slow down repeated requests
+
+// Enable compression middleware for better performance
+app.use(compression({
+  level: 6, // Compression level (1-9, 6 is good balance)
+  threshold: 1024, // Only compress files larger than 1KB
+  filter: (req, res) => {
+    // Don't compress already compressed files
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
+
+// Import middleware
+const redirectMiddleware = require('./middleware/redirects');
+const securityHeaders = require('./middleware/security');
+
+// Email configuration - using environment variables
+const emailUser = process.env.EMAIL_USER || 'nerdykeeda@gmail.com';
+const emailPass = process.env.EMAIL_PASS;
+
+// Debug: Log environment variable values (without showing passwords)
+console.log('Environment variables loaded:');
+console.log('EMAIL_USER:', emailUser ? 'SET' : 'NOT SET');
+console.log('EMAIL_PASS:', emailPass ? 'SET' : 'NOT SET');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
+// Only create transporter if email credentials are provided
+let transporter = null;
+if (emailUser && emailPass) {
+  transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: emailUser,
+      pass: emailPass
+    }
+  });
+  console.log('✅ Email transporter created successfully');
+} else {
+  console.log('❌ Email credentials not configured (missing EMAIL_PASS). Contact form will be disabled.');
+}
+
+// Daily analytics email at 21:00 local time
+function scheduleDailyAnalyticsEmail() {
+  let lastSentDate = null; // YYYY-MM-DD
+  setInterval(() => {
+    try {
+      if (!transporter) return; // email not configured
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const today = now.toISOString().slice(0, 10);
+      if (hours === 21 && minutes === 0 && lastSentDate !== today) {
+        sendAnalyticsEmail(today).then(() => {
+          lastSentDate = today;
+          console.log('📧 Daily analytics email sent for', today);
+        }).catch((err) => {
+          console.log('⚠️ Failed to send analytics email:', err.message);
+        });
+      }
+    } catch (e) {
+      // swallow scheduler errors
+    }
+  }, 60 * 1000);
+}
+
+async function sendAnalyticsEmail(day) {
+  const statsDir = path.join(__dirname, 'stats');
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(new Date(day).getTime() - i * 24 * 60 * 60 * 1000);
+    days.push(d.toISOString().slice(0, 10));
+  }
+
+  let summary = { total: 0, failures: 0, byFormat: {} };
+  const lines = [];
+  for (const d of days) {
+    try {
+      const file = path.join(statsDir, `usage_${d}.json`);
+      if (fs.existsSync(file)) {
+        const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+        const t = data.total || 0;
+        const f = data.failures || 0;
+        summary.total += t;
+        summary.failures += f;
+        if (data.byFormat) {
+          for (const fmt of Object.keys(data.byFormat)) {
+            summary.byFormat[fmt] = (summary.byFormat[fmt] || 0) + (data.byFormat[fmt] || 0);
+          }
+        }
+        lines.push(`${d}: total=${t}, failures=${f}`);
+      } else {
+        lines.push(`${d}: no data`);
+      }
+    } catch (e) {
+      lines.push(`${d}: error reading stats`);
+    }
+  }
+
+  const formatRows = Object.keys(summary.byFormat).sort().map(fmt => `<tr><td style="padding:6px 10px;border:1px solid #ddd">${fmt}</td><td style="padding:6px 10px;border:1px solid #ddd">${summary.byFormat[fmt]}</td></tr>`).join('');
+
+  const html = `
+  <div style="font-family:Inter,Arial,sans-serif;color:#111">
+    <h2>imgtojpg.org · Daily Usage Summary</h2>
+    <p>Date: ${day}</p>
+    <p><b>7-day totals</b></p>
+    <ul>
+      <li>Total conversions: <b>${summary.total}</b></li>
+      <li>Failures: <b>${summary.failures}</b></li>
+    </ul>
+    <h3>By output format</h3>
+    <table style="border-collapse:collapse;border:1px solid #ddd">
+      <thead><tr><th style="padding:6px 10px;border:1px solid #ddd;text-align:left">Format</th><th style="padding:6px 10px;border:1px solid #ddd;text-align:right">Count</th></tr></thead>
+      <tbody>${formatRows || '<tr><td style="padding:6px 10px;border:1px solid #ddd">(none)</td><td style="padding:6px 10px;border:1px solid #ddd;text-align:right">0</td></tr>'}</tbody>
+    </table>
+    <h3 style="margin-top:16px">Daily breakdown</h3>
+    <pre style="background:#f8f8f8;border:1px solid #eee;padding:10px;border-radius:6px">${lines.join('\n')}</pre>
+  </div>`;
+
+  const attachments = [];
+  try {
+    const todayPath = path.join(statsDir, `usage_${day}.json`);
+    if (fs.existsSync(todayPath)) {
+      attachments.push({ filename: `usage_${day}.json`, path: todayPath, contentType: 'application/json' });
+    }
+  } catch (e) { /* ignore */ }
+
+  const mailOptions = {
+    from: emailUser,
+    to: 'nerdykeeda@gmail.com',
+    subject: `Daily Usage Summary - ${day}`,
+    html,
+    attachments
+  };
+  return transporter.sendMail(mailOptions);
+}
+
+scheduleDailyAnalyticsEmail();
+
+// Use redirect middleware FIRST (before static files)
+app.use(redirectMiddleware);
+
+// Use security headers middleware
+app.use(securityHeaders);
+
+app.use(express.static('public'));
+app.use(express.json()); // Add this line for parsing JSON requests
+
+// Performance monitoring endpoint
+app.get('/performance', (req, res) => {
+  const mem = getMemoryUsage();
+  const uptime = process.uptime();
+  
+  res.json({
+    success: true,
+    performance: {
+      memory: mem,
+      uptime: Math.round(uptime),
+      uptimeFormatted: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m ${Math.floor(uptime % 60)}s`,
+      nodeVersion: process.version,
+      platform: process.platform,
+      arch: process.arch,
+      pid: process.pid
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Diagnostic endpoint to check Render environment
+app.get('/debug-env', (req, res) => {
+  try {
+    const { execSync } = require('child_process');
+    
+    const diagnostics = {
+      timestamp: new Date().toISOString(),
+      nodeEnv: process.env.NODE_ENV,
+      platform: process.platform,
+      arch: process.arch,
+      cwd: process.cwd(),
+      uid: process.getuid(),
+      gid: process.getgid()
+    };
+    
+    // Check system dependencies
+    const tools = ['magick', 'convert', 'python3'];
+    diagnostics.tools = {};
+    
+    for (const tool of tools) {
+      try {
+        const version = execSync(`${tool} -version`, { stdio: 'pipe', timeout: 5000 }).toString().split('\n')[0];
+        diagnostics.tools[tool] = { available: true, version };
+      } catch (error) {
+        try {
+          // Try alternative commands
+          if (tool === 'magick') {
+            const convertVersion = execSync('convert -version', { stdio: 'pipe', timeout: 5000 }).toString().split('\n')[0];
+            diagnostics.tools[tool] = { available: true, version: convertVersion, fallback: 'convert' };
+          } else {
+            diagnostics.tools[tool] = { available: false, error: error.message };
+          }
+        } catch (fallbackError) {
+          diagnostics.tools[tool] = { available: false, error: error.message };
+        }
+      }
+    }
+    
+    // Check file permissions
+    try {
+      const testDir = './debug-test';
+      if (!fs.existsSync(testDir)) {
+        fs.mkdirSync(testDir, { recursive: true });
+      }
+      
+      const testFile = path.join(testDir, 'test.txt');
+      fs.writeFileSync(testFile, 'test');
+      const stats = fs.statSync(testFile);
+      
+      diagnostics.fileSystem = {
+        writable: true,
+        permissions: stats.mode.toString(8),
+        uid: stats.uid,
+        gid: stats.gid
+      };
+      
+      // Cleanup
+      fs.unlinkSync(testFile);
+      fs.rmdirSync(testDir);
+    } catch (error) {
+      diagnostics.fileSystem = {
+        writable: false,
+        error: error.message
+      };
+    }
+    
+    res.json({
+      success: true,
+      diagnostics
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Admin authentication middleware
+const adminAuth = (req, res, next) => {
+  const adminToken = req.headers['admin-token'] || req.query.adminToken;
+  
+  // Use environment variable for secure admin token
+  const validToken = process.env.ADMIN_TOKEN || `imgtojpg_${Date.now()}_${Math.random().toString(36)}`;
+  
+  if (adminToken === validToken) {
+    next();
+  } else {
+    res.status(401).json({ 
+      success: false, 
+      message: 'Admin access required' 
+    });
+  }
+};
+
+// Note: Using express-rate-limit (convertRateLimit) instead of custom rate limiting
+
+const upload = multer({ 
+  dest: 'uploads/',
+  limits: {
+    fileSize: 1024 * 1024 * 1024, // 1GB per file (for large RAW files)
+    files: 50, // Allow up to 10 files per request
+    fieldSize: 1024 * 1024 // 1MB for other form fields
+  }
+});
+
+// Subscription system routes
+app.use('/api/payments', paymentsRouter);
+app.use('/api', require('./routes/api'));
+
+// Log conversion after successful download - Simplified approach
+app.post('/log-conversion', optionalAuth, async (req, res) => {
+  try {
+    console.log('🔍 log-conversion endpoint called');
+    console.log('🔍 Request body:', req.body);
+    console.log('🔍 Request user:', req.user ? 'User found' : 'No user');
+    console.log('🔍 Auth header:', req.headers.authorization ? 'Present' : 'Missing');
+    
+    const { sessionId, format } = req.body;
+    
+    const clientIP = req.ip || req.connection.remoteAddress;
+    
+    // Determine conversion type based on page/URL (not file format)
+    const userAgent = req.headers['user-agent'] || '';
+    const referer = req.headers.referer || '';
+    
+    // If conversion comes from camera-raw-converter.html page, it's RAW conversion
+    const isRawConversion = referer.includes('/camera-raw-converter.html') || 
+                           userAgent.includes('camera-raw') ||
+                           req.body.sourcePage === 'camera-raw';
+    
+    const conversionType = isRawConversion ? 'raw' : 'normal';
+    
+    // Check if user is authenticated
+    if (req.user && req.user.id) {
+      // Authenticated user - log with user ID
+      const userId = req.user.id;
+      
+      // Calculate billing period for authenticated users
+      const now = new Date();
+      const billingPeriodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const billingPeriodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      
+      console.log('🔍 Logging authenticated conversion:', {
+        userId: userId,
+        format: format,
+        conversionType: conversionType,
+        sessionId: sessionId,
+        sourcePage: req.body.sourcePage
+      });
+      
+      // Log the conversion for authenticated user
+      await Database.logUsage(
+        userId, 
+        sessionId, 
+        1, // file count
+        0, // file size (not critical)
+        conversionType, 
+        clientIP, 
+        false, // not anonymous
+        billingPeriodStart, 
+        billingPeriodEnd
+      );
+      
+      console.log('✅ Conversion logged successfully for authenticated user:', userId);
+      res.json({ success: true, message: 'Conversion logged successfully for authenticated user' });
+      
+    } else {
+      // Anonymous user (including mobile users with failed auth) - log with IP
+      console.log('🔍 Logging anonymous conversion for IP:', clientIP);
+      
+      // Use weekly period for anonymous users (same as canIPConvert)
+      const now = new Date();
+      const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+      const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
+      
+      // Log the conversion for anonymous user (IP-based)
+      await Database.logUsage(
+        `anonymous_${clientIP}`, // Use IP as pseudo-user ID for anonymous users
+        sessionId, 
+        1, // file count
+        0, // file size (not critical)
+        conversionType, 
+        clientIP, 
+        true, // is anonymous
+        weekStart, 
+        weekEnd
+      );
+      
+      console.log('✅ Conversion logged successfully for anonymous user (IP):', clientIP);
+      res.json({ success: true, message: 'Conversion logged successfully for anonymous user' });
+    }
+    
+  } catch (error) {
+    console.error('❌ Error logging conversion:', error);
+    console.error('❌ Error details:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    res.status(500).json({ success: false, message: 'Failed to log conversion: ' + error.message });
+  }
+});
+
+// Enhanced /convert endpoint with subscription middleware
+// POST /convert
+app.post('/convert', convertRateLimit, upload.array('files'), optionalAuth, extractFileInfo, checkConversionQuota, async (req, res) => {
+  const requestStartTime = Date.now();
+  const initialMemory = getMemoryUsage();
+  
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded'
+      });
+    }
+    
+    console.log(`🚀 Conversion request started - Files: ${req.files.length}, Memory: ${initialMemory.heapUsed}MB`);
+
+    // Validate file types
+    const allowedExtensions = ['.heic', '.heif', '.jpg', '.jpeg', '.png', '.webp', '.tiff', '.svg', '.cr2', '.cr3', '.nef', '.nrw', '.arw', '.srf', '.sr2', '.raf', '.orf', '.pef', '.rw2', '.3fr', '.rdc', '.iiq', '.dcr', '.k25', '.kdc', '.mef', '.mos', '.erf'];
+    const invalidFiles = req.files.filter(file => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      return !allowedExtensions.includes(ext);
+    });
+
+    if (invalidFiles.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid file type(s): ${invalidFiles.map(f => f.originalname).join(', ')}`
+      });
+    }
+
+    // Validate file sizes (1GB limit for RAW files)
+    const maxSize = 1024 * 1024 * 1024; // 1GB
+    const oversizedFiles = req.files.filter(file => file.size > maxSize);
+
+    if (oversizedFiles.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `File(s) too large: ${oversizedFiles.map(f => f.originalname).join(', ')} (max 1GB)`
+      });
+    }
+
+    // Get output format from request body
+    const outputFormat = req.body.outputFormat || 'jpg';
+    
+    // Validate output format
+    const validOutputFormats = ['jpg', 'jpeg', 'png', 'webp', 'tiff', 'svg', 'psd'];
+    if (!validOutputFormats.includes(outputFormat.toLowerCase())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid output format. Supported formats: JPG, PNG, WebP, TIFF, SVG, PSD'
+      });
+    }
+
+    // Create session directory (allow client-provided id for progress polling)
+    let sessionId = (req.body && req.body.clientSessionId) ? String(req.body.clientSessionId) : uuidv4();
+    // basic sanitize: allow a-zA-Z0-9 - _ only
+    sessionId = sessionId.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64) || uuidv4();
+    const sessionPath = path.join(__dirname, 'public', 'converted', sessionId);
+    
+    // Create session directory
+    try {
+      fs.mkdirSync(sessionPath, { recursive: true });
+    } catch (dirError) {
+      console.error('Error creating session directory:', dirError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create session directory'
+      });
+    }
+
+    // Copy uploaded files to session directory
+    const copiedFiles = [];
+    for (const file of req.files) {
+      const fileName = file.originalname;
+      const sessionFilePath = path.join(sessionPath, fileName);
+      
+      try {
+        // Copy file to session directory
+        fs.copyFileSync(file.path, sessionFilePath);
+        
+        // Clean up temporary upload file
+        fs.unlinkSync(file.path);
+        
+        copiedFiles.push({
+          path: sessionFilePath,
+          originalname: fileName,
+          size: file.size
+        });
+        
+        console.log(`Copied ${fileName} to session directory`);
+      } catch (copyError) {
+        console.error(`Failed to copy ${fileName}:`, copyError);
+        // Clean up temporary file even if copy fails
+        try {
+          fs.unlinkSync(file.path);
+        } catch (cleanupError) {
+          console.log(`Warning: Could not clean up temp file ${file.path}`);
+        }
+        throw new Error(`Failed to copy file ${fileName}: ${copyError.message}`);
+      }
+    }
+
+    const jobData = {
+      sessionId,
+      sessionPath,
+      files: copiedFiles,
+      outputFormat: outputFormat
+    };
+
+    // Store job data temporarily
+    try {
+      fs.writeFileSync(path.join(sessionPath, 'jobData.json'), JSON.stringify(jobData));
+      // Initialize progress file
+      const progress = {
+        sessionId,
+        total: copiedFiles.length,
+        done: 0,
+        status: 'queued',
+        updatedAt: new Date().toISOString()
+      };
+      fs.writeFileSync(path.join(sessionPath, 'progress.json'), JSON.stringify(progress));
+    } catch (writeError) {
+      console.error('Error writing job data:', writeError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to save job data'
+      });
+    }
+
+    // Create and run worker (reliable RAW path with vips + dcraw)
+    const worker = new Worker(path.join(__dirname, 'jobs', 'convert_libraw.js'), {
+      workerData: jobData
+    });
+
+    // Set worker timeout (20 minutes for large RAW files)
+    const workerTimeout = setTimeout(() => {
+      worker.terminate();
+      res.status(500).json({
+        success: false,
+        message: 'Conversion timed out. Please try again with smaller files.'
+      });
+    }, 20 * 60 * 1000);
+
+    worker.on('message', (message) => {
+      clearTimeout(workerTimeout);
+      const totalTime = (Date.now() - requestStartTime) / 1000;
+      const finalMemory = getMemoryUsage();
+      
+      if (message.success) {
+        console.log(`✅ Conversion completed successfully in ${totalTime.toFixed(2)}s`);
+        console.log(`📊 Performance - Processing: ${message.processingTime || 'N/A'}s, Memory: ${initialMemory.heapUsed}MB → ${finalMemory.heapUsed}MB`);
+        try {
+          // Anonymous aggregate: update a lightweight counter file (no IP, no filenames)
+          const statsDir = path.join(__dirname, 'stats');
+          const day = new Date().toISOString().slice(0,10);
+          const file = path.join(statsDir, `usage_${day}.json`);
+          if (!fs.existsSync(statsDir)) fs.mkdirSync(statsDir, { recursive: true });
+          const base = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file,'utf8')) : { total:0, byFormat:{}, failures:0 };
+          base.total += 1;
+          const fmt = (req.body && req.body.outputFormat || 'jpg').toLowerCase();
+          base.byFormat[fmt] = (base.byFormat[fmt]||0) + 1;
+          fs.writeFileSync(file, JSON.stringify(base));
+        } catch(_) {}
+        
+        res.json({
+          success: true,
+          message: 'Conversion completed successfully',
+          sessionId: sessionId,
+          downloadLink: `/download/${sessionId}`,
+          convertedFiles: message.convertedFiles,
+          performance: {
+            totalTime: totalTime,
+            processingTime: message.processingTime,
+            memoryUsage: finalMemory
+          }
+        });
+      } else {
+        console.log(`❌ Conversion failed after ${totalTime.toFixed(2)}s: ${message.error}`);
+        try {
+          const statsDir = path.join(__dirname, 'stats');
+          const day = new Date().toISOString().slice(0,10);
+          const file = path.join(statsDir, `usage_${day}.json`);
+          if (!fs.existsSync(statsDir)) fs.mkdirSync(statsDir, { recursive: true });
+          const base = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file,'utf8')) : { total:0, byFormat:{}, failures:0 };
+          base.failures += 1;
+          fs.writeFileSync(file, JSON.stringify(base));
+        } catch(_) {}
+        res.status(500).json({
+          success: false,
+          message: 'Conversion failed: ' + message.error
+        });
+      }
+      // Give worker a moment to clean up before terminating
+      setTimeout(() => worker.terminate(), 100);
+    });
+
+    worker.on('error', (error) => {
+      clearTimeout(workerTimeout);
+      console.error('Worker error:', error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          message: 'Worker error: ' + error.message
+        });
+      }
+      worker.terminate();
+    });
+
+    worker.on('exit', (code) => {
+      clearTimeout(workerTimeout);
+      // Only log non-zero exit codes if response hasn't been sent
+      if (code !== 0 && !res.headersSent) {
+        console.error(`Worker stopped with exit code ${code}`);
+        res.status(500).json({
+          success: false,
+          message: 'Conversion process failed unexpectedly'
+        });
+      } else if (code !== 0) {
+        // Just log the exit code if response was already sent
+        console.log(`Worker completed with exit code ${code} (response already sent)`);
+      }
+    });
+
+  } catch (error) {
+    console.error('Server error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: 'Server error: ' + error.message
+      });
+    }
+  }
+});
+
+// Progress endpoint
+app.get('/progress/:sessionId', (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const sessionPath = path.join(__dirname, 'public', 'converted', sessionId);
+    const progressPath = path.join(sessionPath, 'progress.json');
+    if (!fs.existsSync(progressPath)) {
+      return res.status(404).json({ success: false, message: 'Progress not found yet' });
+    }
+    const data = JSON.parse(fs.readFileSync(progressPath, 'utf8'));
+    const percent = data.total > 0 ? Math.round((data.done / data.total) * 100) : 0;
+    
+    // Enhanced progress response with more details
+    res.json({ 
+      success: true, 
+      sessionId, 
+      total: data.total, 
+      done: data.done, 
+      percent: Math.max(0, Math.min(100, percent)), 
+      status: data.status || 'processing',
+      currentFile: data.currentFile || '',
+      updatedAt: data.updatedAt
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Serve the ZIP download
+app.get('/download/:sessionId', (req, res) => {
+  const sessionId = req.params.sessionId;
+  const sessionPath = path.join(__dirname, 'public', 'converted', sessionId);
+  const zipPath = path.join(sessionPath, 'converted_images.zip');
+
+  console.log(`Download request for session: ${sessionId}`);
+  console.log(`ZIP path: ${zipPath}`);
+
+  if (!fs.existsSync(zipPath)) {
+    console.log(`ZIP file not found: ${zipPath}`);
+    return res.status(404).send('File not found or expired.');
+  }
+
+  // Get file stats for debugging
+  const stats = fs.statSync(zipPath);
+  console.log(`ZIP file size: ${stats.size} bytes`);
+
+  res.download(zipPath, `converted_images_${sessionId}.zip`, (err) => {
+    if (err) {
+      console.error('Download error:', err);
+    } else {
+      console.log(`ZIP download completed successfully for session: ${sessionId}`);
+    }
+  });
+});
+
+// Serve individual converted images
+app.get('/converted/:sessionId/:filename', (req, res) => {
+  const { sessionId, filename } = req.params;
+  const filePath = path.join(__dirname, 'public', 'converted', sessionId, filename);
+  
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send('File not found.');
+  }
+  
+  // Set proper content type based on file extension
+  const ext = path.extname(filename).toLowerCase();
+  let contentType = 'application/octet-stream'; // default
+  
+  switch (ext) {
+    case '.jpg':
+    case '.jpeg':
+      contentType = 'image/jpeg';
+      break;
+    case '.png':
+      contentType = 'image/png';
+      break;
+    case '.webp':
+      contentType = 'image/webp';
+      break;
+    case '.tiff':
+    case '.tif':
+      contentType = 'image/tiff';
+      break;
+    case '.svg':
+      contentType = 'image/svg+xml';
+      break;
+  }
+  
+  // Set headers for proper download
+  res.setHeader('Content-Type', contentType);
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  
+  // Send the file
+  res.sendFile(filePath);
+});
+
+// Blog dashboard route
+app.get('/blog-dashboard', adminAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'blog-dashboard.html'));
+});
+
+// API endpoint to update blog.html
+app.post('/api/update-blog', adminAuth, (req, res) => {
+  try {
+    const { postData, postHTML } = req.body;
+    
+    if (!postData || !postHTML) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing post data or HTML'
+      });
+    }
+
+    // Create individual blog post file with proper structure
+    const { title, excerpt, tags, content, featureImage, metaDescription, ogTitle, ogDescription } = postData;
+    
+    // Generate filename from title
+    const filename = title.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '-')
+      .substring(0, 50) + '.html';
+    
+    const blogPostPath = path.join(__dirname, 'public', `blog-${filename}`);
+    
+    // Create proper blog post HTML structure
+    const blogPostHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>${title} - imgtojpg.org</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="${metaDescription || excerpt}">
+    <meta name="keywords" content="${tags || 'image conversion, blog'}">
+    <meta name="author" content="Vinod Kumar">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://imgtojpg.org/blog-${filename}">
+    <meta property="og:title" content="${ogTitle || title}">
+    <meta property="og:description" content="${ogDescription || metaDescription || excerpt}">
+    <meta property="og:image" content="${featureImage || 'https://imgtojpg.org/imgtojpg_logo_new.webp'}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="imgtojpg.org">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://imgtojpg.org/blog-${filename}">
+    <meta property="twitter:title" content="${ogTitle || title}">
+    <meta property="twitter:description" content="${ogDescription || metaDescription || excerpt}">
+    <meta property="twitter:image" content="${featureImage || 'https://imgtojpg.org/imgtojpg_logo_new.webp'}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/imgtojpg_logo_new.png">
+    <link rel="apple-touch-icon" href="/imgtojpg_logo_new.png">
+    <link rel="shortcut icon" href="/imgtojpg_logo_new.png">
+    <link rel="manifest" href="/manifest.webmanifest">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/custom.css">
+    
+    <!-- Mobile Responsive Styles -->
+    <style>
+      /* Mobile Blog Post Responsive Styles */
+      @media (max-width: 768px) {
+        .container {
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
+        .prose {
+          font-size: 1rem;
+          line-height: 1.6;
+        }
+        .prose h1 {
+          font-size: 1.875rem;
+          line-height: 2.25rem;
+        }
+        .prose h2 {
+          font-size: 1.5rem;
+          line-height: 2rem;
+        }
+        .prose h3 {
+          font-size: 1.25rem;
+          line-height: 1.75rem;
+        }
+        .prose table {
+          font-size: 0.875rem;
+        }
+        .prose th,
+        .prose td {
+          padding: 0.5rem;
+        }
+      }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation Header -->
+    <header class="bg-white shadow-sm border-b">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-gray-900">
+                        <img src="/imgtojpg_logo_new.png" alt="imgtojpg.org" class="h-8 w-auto">
+                    </a>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="/" class="text-gray-700 hover:text-blue-600">Home</a>
+                    <a href="/blog.html" class="text-gray-700 hover:text-blue-600">Blog</a>
+                    <a href="/camera-raw-converter.html" class="text-gray-700 hover:text-blue-600">Camera Raw</a>
+                    <a href="/pricing.html" class="text-gray-700 hover:text-blue-600">Pricing</a>
+                </div>
+                <div class="md:hidden">
+                    <button class="text-gray-700 hover:text-blue-600">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Article Header -->
+        <article class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="px-6 py-8">
+                <!-- Meta Info -->
+                <div class="flex items-center text-sm text-gray-500 mb-4">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-3">
+                        📝 Blog Post
+                    </span>
+                    <time datetime="${new Date().toISOString().split('T')[0]}">${new Date().toLocaleDateString('en-GB')}</time>
+                </div>
+
+                <!-- Title -->
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">${title}</h1>
+                
+                ${excerpt ? `<p class="text-xl text-gray-600 mb-6">${excerpt}</p>` : ''}
+                
+                ${featureImage ? `<img src="${featureImage}" alt="${title}" class="w-full h-64 md:h-80 object-cover rounded-lg mb-8">` : ''}
+
+                <!-- Content -->
+                <div class="prose prose-lg max-w-none">
+                    ${content}
+                </div>
+            </div>
+        </article>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <img src="/imgtojpg_logo_new.png" alt="imgtojpg.org" class="h-8 w-auto mb-4">
+                    <p class="text-gray-600 text-sm">Professional image conversion tools for photographers, designers, and creators.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-4">Tools</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="/heic-to-jpg.html" class="text-gray-600 hover:text-blue-600">HEIC to JPG</a></li>
+                        <li><a href="/png-to-jpg.html" class="text-gray-600 hover:text-blue-600">PNG to JPG</a></li>
+                        <li><a href="/webp-to-jpg.html" class="text-gray-600 hover:text-blue-600">WebP to JPG</a></li>
+                        <li><a href="/camera-raw-converter.html" class="text-gray-600 hover:text-blue-600">Camera RAW</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-4">Resources</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="/blog.html" class="text-gray-600 hover:text-blue-600">Blog</a></li>
+                        <li><a href="/help-center.html" class="text-gray-600 hover:text-blue-600">Help Center</a></li>
+                        <li><a href="/contact.html" class="text-gray-600 hover:text-blue-600">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-4">Legal</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="/privacy-policy.html" class="text-gray-600 hover:text-blue-600">Privacy Policy</a></li>
+                        <li><a href="/terms-of-use.html" class="text-gray-600 hover:text-blue-600">Terms of Use</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t mt-8 pt-8 text-center text-sm text-gray-500">
+                <p>&copy; 2025 imgtojpg.org. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>`;
+
+    // Write the individual blog post file
+    fs.writeFileSync(blogPostPath, blogPostHTML);
+    
+    // Also update blog.html to include a link to the new post
+    const blogPath = path.join(__dirname, 'public', 'blog.html');
+    let blogContent = fs.readFileSync(blogPath, 'utf8');
+    
+    // Create a blog post card for the main blog page in the proper card format
+    const blogPostCard = `
+          <a href="/blog-${filename}" class="adobe-card p-6 block hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="flex items-center text-sm text-gray-500 mb-4">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-3">
+                📝 New Post
+              </span>
+              <time>Published on ${new Date().toLocaleDateString('en-GB')}</time>
+            </div>
+            ${featureImage ? `<img src="${featureImage}" alt="${title}" class="w-full h-48 object-cover rounded-lg mb-4">` : ''}
+            <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">${title}</h3>
+            ${excerpt ? `<p class="text-gray-600 mb-3">${excerpt}</p>` : ''}
+            <div class="flex flex-wrap gap-1 mb-4">
+              ${tags ? tags.split(',').map(tag => `<span class="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">${tag.trim()}</span>`).join('') : ''}
+            </div>
+            <span class="inline-block text-blue-600 font-medium">Read More →</span>
+          </a>`;
+    
+    // Find the position to insert new post in the Featured section
+    const featuredSectionStart = blogContent.indexOf('<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">');
+    let newBlogContent;
+    
+    if (featuredSectionStart === -1) {
+      // Fallback: insert after BLOG POSTS START marker
+      const navEndIndex = blogContent.indexOf('<!-- BLOG POSTS START - New posts will be inserted here -->');
+    if (navEndIndex === -1) {
+        // Last resort: insert after body tag
+      const bodyTagIndex = blogContent.indexOf('<body>') + 7;
+      const beforeBody = blogContent.substring(0, bodyTagIndex);
+      const afterBody = blogContent.substring(bodyTagIndex);
+        newBlogContent = beforeBody + '\n\n  ' + blogPostCard + '\n\n  ' + afterBody;
+    } else {
+      const markerEndIndex = navEndIndex + '<!-- BLOG POSTS START - New posts will be inserted here -->'.length;
+      const beforeMarker = blogContent.substring(0, markerEndIndex);
+      const afterMarker = blogContent.substring(markerEndIndex);
+        newBlogContent = beforeMarker + '\n\n  ' + blogPostCard + '\n\n  ' + afterMarker;
+      }
+    } else {
+      // Insert at the beginning of the Featured section grid
+      const gridStart = featuredSectionStart + '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">'.length;
+      const beforeGrid = blogContent.substring(0, gridStart);
+      const afterGrid = blogContent.substring(gridStart);
+      newBlogContent = beforeGrid + '\n          ' + blogPostCard + '\n          ' + afterGrid;
+    }
+    
+    // Write updated blog.html
+    fs.writeFileSync(blogPath, newBlogContent);
+    
+    res.json({
+      success: true,
+      message: 'Blog post created successfully',
+      postUrl: `/blog-${filename}`
+    });
+    
+  } catch (error) {
+    console.error('Error creating blog post:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating blog post: ' + error.message
+    });
+  }
+});
+
+// File cleanup API endpoints
+app.get('/api/cleanup/stats', async (req, res) => {
+  try {
+    const stats = await fileCleanupManager.getStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error getting cleanup stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get cleanup statistics'
+    });
+  }
+});
+
+app.post('/api/cleanup/manual', async (req, res) => {
+  try {
+    await fileCleanupManager.performCleanup();
+    const stats = await fileCleanupManager.getStats();
+    res.json({
+      success: true,
+      message: 'Manual cleanup completed',
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error during manual cleanup:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to perform manual cleanup'
+    });
+  }
+});
+
+app.post('/api/cleanup/session/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const result = await fileCleanupManager.cleanupSession(sessionId);
+    res.json({
+      success: true,
+      message: `Session ${sessionId} cleaned up`,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error cleaning up session:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to clean up session'
+    });
+  }
+});
+
+// Contact form endpoint
+app.post('/api/contact', async (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body;
+    
+    // Validate required fields
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid email address'
+      });
+    }
+    
+    // Check if email is configured
+    if (!transporter) {
+      return res.status(503).json({
+        success: false,
+        message: 'Contact form is temporarily unavailable. Please try again later or contact us directly.'
+      });
+    }
+
+    // Email content
+    const mailOptions = {
+      from: emailUser,
+      to: 'nerdykeeda@gmail.com',
+      subject: `Contact Form: ${subject}`,
+      html: `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Subject:</strong> ${subject}</p>
+        <p><strong>Message:</strong></p>
+        <p>${message.replace(/\n/g, '<br>')}</p>
+        <hr>
+        <p><em>This message was sent from the contact form on imgtojpg.org</em></p>
+      `,
+      text: `
+        New Contact Form Submission
+        
+        Name: ${name}
+        Email: ${email}
+        Subject: ${subject}
+        Message:
+        ${message}
+        
+        ---
+        This message was sent from the contact form on imgtojpg.org
+      `
+    };
+    
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
+    
+    console.log('Email sent successfully:', info.messageId);
+    
+    res.json({
+      success: true,
+      message: 'Your message has been sent successfully! We\'ll get back to you soon.',
+      messageId: info.messageId
+    });
+    
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send email. Please try again later.'
+    });
+  }
+});
+
+// 🔁 Auto-delete old sessions (older than 15 mins)
+const CLEANUP_INTERVAL = 5 * 60 * 1000; // every 5 minutes
+const MAX_AGE = 15 * 60 * 1000; // 15 minutes
+
+setInterval(() => {
+  const baseDir = path.join(__dirname, 'public', 'converted');
+
+  fs.readdir(baseDir, (err, folders) => {
+    if (err) return;
+
+    folders.forEach(folder => {
+      const folderPath = path.join(baseDir, folder);
+      fs.stat(folderPath, (err, stats) => {
+        if (!err && Date.now() - stats.ctimeMs > MAX_AGE) {
+          fs.rm(folderPath, { recursive: true, force: true }, () => {
+            console.log(`🧹 Deleted expired session folder: ${folder}`);
+          });
+        }
+      });
+    });
+  });
+}, CLEANUP_INTERVAL);
+
+
+// 404 Error Handler - Must be placed after all other routes
+app.use((req, res) => {
+  // Log 404 errors for debugging
+  console.log(`404 Error - Page not found: ${req.method} ${req.url}`);
+  console.log(`Referrer: ${req.get('Referrer') || 'Direct access'}`);
+  console.log(`User Agent: ${req.get('User-Agent')}`);
+  
+  // Serve custom 404 page
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
+app.listen(port, () => {
+  console.log(`🚀 Server running at http://localhost:${port}`);
+  console.log(`📁 Uploads directory: ${path.join(__dirname, 'uploads')}`);
+  console.log(`📁 Converted directory: ${path.join(__dirname, 'public', 'converted')}`);
+  
+  // Start file cleanup service
+  fileCleanupManager.start();
+});

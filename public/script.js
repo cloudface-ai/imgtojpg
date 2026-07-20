@@ -36,18 +36,36 @@ document.getElementById('uploadForm').addEventListener('submit', async function 
 
     convertProgress.classList.remove('hidden');
     convertBar.style.width = '0%';
-    convertStatus.textContent = 'Converting...';
+    convertStatus.textContent = 'Converting... 0%';
 
-    let progress = 0;
-    const convertSim = setInterval(() => {
-      progress += 10;
-      convertBar.style.width = `${progress}%`;
-      if (progress >= 100) {
-        clearInterval(convertSim);
-        convertStatus.textContent = 'Conversion done.';
-        showResults(JSON.parse(xhr.responseText));
+    if (xhr.status === 200) {
+      try {
+        const response = JSON.parse(xhr.responseText);
+        
+        // Start real progress tracking using ProgressTracker
+        if (window.ProgressTracker && response.sessionId) {
+          window.ProgressTracker.startTracking(
+            response.sessionId, 
+            convertBar, 
+            convertStatus, 
+            (progressData) => {
+              // Conversion complete
+              convertStatus.textContent = 'Conversion complete!';
+              showResults(response);
+            }
+          );
+        } else {
+          // Fallback if ProgressTracker not available
+          convertStatus.textContent = 'Conversion complete!';
+          showResults(response);
+        }
+      } catch (error) {
+        convertStatus.textContent = 'Error processing response';
+        console.error('Response parsing error:', error);
       }
-    }, 200);
+    } else {
+      convertStatus.textContent = `Conversion failed (${xhr.status})`;
+    }
   };
 
   xhr.send(formData);

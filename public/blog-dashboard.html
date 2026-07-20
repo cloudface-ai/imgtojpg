@@ -4,26 +4,670 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Blog Post Management Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    /* Reset and Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f9fafb;
+      color: #374151;
+      line-height: 1.6;
+    }
+    
+    /* Layout */
+    .min-h-screen { min-height: 100vh; }
+    .max-w-7xl { max-width: 80rem; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+    .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+    .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .px-8 { padding-left: 2rem; padding-right: 2rem; }
+    .p-6 { padding: 1.5rem; }
+    .p-4 { padding: 1rem; }
+    .p-3 { padding: 0.75rem; }
+    
+    /* Grid */
+    .grid { display: grid; }
+    .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .gap-4 { gap: 1rem; }
+    .gap-8 { gap: 2rem; }
+    .lg\:col-span-2 { grid-column: span 2 / span 2; }
+    
+    /* Flexbox */
+    .flex { display: flex; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .space-x-2 > * + * { margin-left: 0.5rem; }
+    .space-x-3 > * + * { margin-left: 0.75rem; }
+    .space-x-4 > * + * { margin-left: 1rem; }
+    .space-y-3 > * + * { margin-top: 0.75rem; }
+    .space-y-4 > * + * { margin-top: 1rem; }
+    .space-y-6 > * + * { margin-top: 1.5rem; }
+    .flex-wrap { flex-wrap: wrap; }
+    
+    /* Colors */
+    .bg-white { background-color: #ffffff; }
+    .bg-gray-50 { background-color: #f9fafb; }
+    .bg-gray-100 { background-color: #f3f4f6; }
+    .bg-blue-50 { background-color: #eff6ff; }
+    .bg-green-50 { background-color: #f0fdf4; }
+    .bg-purple-50 { background-color: #faf5ff; }
+    .bg-orange-50 { background-color: #fff7ed; }
+    .bg-indigo-50 { background-color: #eef2ff; }
+    .bg-yellow-50 { background-color: #fefce8; }
+    .bg-red-50 { background-color: #fef2f2; }
+    
+    .text-white { color: #ffffff; }
+    .text-gray-900 { color: #111827; }
+    .text-gray-700 { color: #374151; }
+    .text-gray-600 { color: #4b5563; }
+    .text-gray-500 { color: #6b7280; }
+    .text-gray-400 { color: #9ca3af; }
+    .text-blue-600 { color: #2563eb; }
+    .text-blue-700 { color: #1d4ed8; }
+    .text-blue-900 { color: #1e3a8a; }
+    .text-green-600 { color: #16a34a; }
+    .text-green-700 { color: #15803d; }
+    .text-green-900 { color: #14532d; }
+    .text-purple-600 { color: #9333ea; }
+    .text-purple-700 { color: #7c3aed; }
+    .text-purple-900 { color: #581c87; }
+    .text-yellow-600 { color: #ca8a04; }
+    .text-yellow-700 { color: #a16207; }
+    .text-indigo-600 { color: #4f46e5; }
+    .text-indigo-700 { color: #4338ca; }
+    .text-red-600 { color: #dc2626; }
+    
+    /* Borders */
+    .border { border-width: 1px; border-style: solid; border-color: #e5e7eb; }
+    .border-2 { border-width: 2px; }
+    .border-b { border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: #e5e7eb; }
+    .border-l-4 { border-left-width: 4px; border-left-style: solid; }
+    .border-gray-200 { border-color: #e5e7eb; }
+    .border-gray-300 { border-color: #d1d5db; }
+    .border-green-200 { border-color: #bbf7d0; }
+    .border-green-300 { border-color: #86efac; }
+    .border-blue-200 { border-color: #bfdbfe; }
+    .border-blue-500 { border-color: #3b82f6; }
+    .border-green-500 { border-color: #22c55e; }
+    .border-purple-500 { border-color: #a855f7; }
+    .border-gray-400 { border-color: #9ca3af; }
+    .border-blue-500 { border-color: #3b82f6; }
+    .border-orange-500 { border-color: #f97316; }
+    .border-red-500 { border-color: #ef4444; }
+    .border-indigo-500 { border-color: #6366f1; }
+    .border-yellow-500 { border-color: #eab308; }
+    
+    /* Border Radius */
+    .rounded-md { border-radius: 0.375rem; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .rounded-xl { border-radius: 0.75rem; }
+    
+    /* Shadows */
+    .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+    .shadow-lg { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+    
+    /* Typography */
+    .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+    .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    .text-xs { font-size: 0.75rem; line-height: 1rem; }
+    .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+    .font-bold { font-weight: 700; }
+    .font-semibold { font-weight: 600; }
+    .font-medium { font-weight: 500; }
+    .italic { font-style: italic; }
+    .text-center { text-align: center; }
+    
+    /* Spacing */
+    .mb-2 { margin-bottom: 0.5rem; }
+    .mb-3 { margin-bottom: 0.75rem; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .mt-4 { margin-top: 1rem; }
+    .mt-8 { margin-top: 2rem; }
+    .mr-1 { margin-right: 0.25rem; }
+    .mr-2 { margin-right: 0.5rem; }
+    .w-full { width: 100%; }
+    .h-16 { height: 4rem; }
+    .h-96 { height: 24rem; }
+    .h-64 { height: 16rem; }
+    .h-48 { height: 12rem; }
+    .w-6 { width: 1.5rem; }
+    .h-6 { height: 1.5rem; }
+    .max-w-none { max-width: none; }
+    
+    /* Interactive Elements */
+    .cursor-pointer { cursor: pointer; }
+    .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    .transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    .duration-200 { transition-duration: 200ms; }
+    
+    /* Form Elements */
+    input, textarea, select {
+      display: block;
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    /* Buttons */
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1rem;
+      border: 1px solid transparent;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      text-decoration: none;
+    }
+    
+    button:hover {
+      opacity: 0.9;
+    }
+    
+    button:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    /* Button Variants */
+    .bg-blue-600 { background-color: #2563eb; color: white; }
+    .bg-red-600 { background-color: #dc2626; color: white; }
+    .bg-green-600 { background-color: #16a34a; color: white; }
+    .bg-purple-600 { background-color: #9333ea; color: white; }
+    .bg-orange-600 { background-color: #ea580c; color: white; }
+    .bg-indigo-600 { background-color: #4f46e5; color: white; }
+    .bg-yellow-600 { background-color: #ca8a04; color: white; }
+    .bg-gray-300 { background-color: #d1d5db; color: #374151; }
+    .bg-gray-600 { background-color: #4b5563; color: white; }
+    
+    .hover\:bg-blue-700:hover { background-color: #1d4ed8; }
+    .hover\:bg-red-700:hover { background-color: #b91c1c; }
+    .hover\:bg-green-700:hover { background-color: #15803d; }
+    .hover\:bg-purple-700:hover { background-color: #7c3aed; }
+    .hover\:bg-orange-700:hover { background-color: #c2410c; }
+    .hover\:bg-indigo-700:hover { background-color: #4338ca; }
+    .hover\:bg-yellow-700:hover { background-color: #a16207; }
+    .hover\:bg-gray-50:hover { background-color: #f9fafb; }
+    .hover\:bg-gray-100:hover { background-color: #f3f4f6; }
+    
+    .hover\:from-blue-700:hover { background: linear-gradient(to right, #1d4ed8, #7c3aed); }
+    .hover\:to-purple-700:hover { background: linear-gradient(to right, #2563eb, #7c3aed); }
+    .hover\:from-green-600:hover { background: linear-gradient(to right, #16a34a, #2563eb); }
+    .hover\:to-blue-600:hover { background: linear-gradient(to right, #16a34a, #2563eb); }
+    
+    /* Gradients */
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .bg-gradient-to-r {
+      background-image: linear-gradient(to right, var(--tw-gradient-stops));
+    }
+    
+    .from-blue-600 { --tw-gradient-from: #2563eb; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(37, 99, 235, 0)); }
+    .to-purple-600 { --tw-gradient-to: #9333ea; }
+    .from-green-600 { --tw-gradient-from: #16a34a; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(22, 163, 74, 0)); }
+    .to-blue-600 { --tw-gradient-to: #2563eb; }
+    .from-orange-600 { --tw-gradient-from: #ea580c; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(234, 88, 12, 0)); }
+    .to-red-600 { --tw-gradient-to: #dc2626; }
+    .from-indigo-600 { --tw-gradient-from: #4f46e5; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(79, 70, 229, 0)); }
+    .to-purple-600 { --tw-gradient-to: #9333ea; }
+    .from-purple-600 { --tw-gradient-from: #9333ea; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(147, 51, 234, 0)); }
+    .to-pink-600 { --tw-gradient-to: #db2777; }
+    .from-blue-50 { --tw-gradient-from: #eff6ff; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(239, 246, 255, 0)); }
+    .to-purple-50 { --tw-gradient-to: #faf5ff; }
+    
+    /* Custom Components */
+    .glass-effect {
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.9);
+    }
+    
+    .seo-score-excellent { color: #10b981; }
+    .seo-score-good { color: #f59e0b; }
+    .seo-score-poor { color: #ef4444; }
+    
+    .feature-image-preview {
+      max-height: 200px;
+      object-fit: cover;
+    }
+    
+    .quill-editor-enhanced {
+      border-radius: 8px;
+      border: 2px solid #e5e7eb;
+    }
+    
+    .quill-editor-enhanced:hover {
+      border-color: #3b82f6;
+    }
+    
+    .seo-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .seo-indicator.excellent { background-color: #10b981; }
+    .seo-indicator.good { background-color: #f59e0b; }
+    .seo-indicator.poor { background-color: #ef4444; }
+    
+    /* Prose Styles */
+    .prose {
+      max-width: 65ch;
+      color: #374151;
+    }
+    
+    .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+      color: #111827;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+    
+    .prose h2 { font-size: 1.5rem; }
+    .prose h3 { font-size: 1.25rem; }
+    .prose h4 { font-size: 1.125rem; }
+    
+    .prose p {
+      margin-bottom: 1rem;
+    }
+    
+    .prose ul, .prose ol {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+    }
+    
+    .prose li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .prose strong {
+      font-weight: 600;
+    }
+    
+    .prose em {
+      font-style: italic;
+    }
+    
+    .prose a {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+    
+    .prose a:hover {
+      color: #1d4ed8;
+    }
+    
+    .prose img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+    }
+    
+    .prose-lg { font-size: 1.125rem; line-height: 1.7777778; }
+    .prose-sm { font-size: 0.875rem; line-height: 1.7142857; }
+    
+    /* Responsive */
+    @media (min-width: 768px) {
+      .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    
+    @media (min-width: 1024px) {
+      .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .lg\:col-span-2 { grid-column: span 2 / span 2; }
+      .lg\:px-8 { padding-left: 2rem; padding-right: 2rem; }
+    }
+    
+    /* Utility Classes */
+    .hidden { display: none; }
+    .block { display: block; }
+    .inline-block { display: inline-block; }
+    .overflow-hidden { overflow: hidden; }
+    .object-cover { object-fit: cover; }
+    .border-0 { border-width: 0; }
+    
+    /* Focus States */
+    .focus\:outline-none:focus { outline: none; }
+    .focus\:ring-2:focus { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+    .focus\:ring-blue-500:focus { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+    .focus\:ring-green-500:focus { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1); }
+    .focus\:ring-yellow-500:focus { box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.1); }
+    .focus\:ring-red-500:focus { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
+    .focus\:ring-white\/50:focus { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }
+    .focus\:border-blue-500:focus { border-color: #3b82f6; }
+    .focus\:border-green-500:focus { border-color: #22c55e; }
+    .focus\:border-purple-500:focus { border-color: #a855f7; }
+    
+    /* Text Colors with Opacity */
+    .text-white\/80 { color: rgba(255, 255, 255, 0.8); }
+    .text-white\/90 { color: rgba(255, 255, 255, 0.9); }
+    
+    /* Background Colors with Opacity */
+    .bg-white\/20 { background-color: rgba(255, 255, 255, 0.2); }
+    .bg-white\/30 { background-color: rgba(255, 255, 255, 0.3); }
+    
+    /* Fixed Positioning */
+    .fixed { position: fixed; }
+    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+    .top-4 { top: 1rem; }
+    .right-4 { right: 1rem; }
+    .z-50 { z-index: 50; }
+    
+    /* Modal Styles */
+    .bg-opacity-50 { background-color: rgba(0, 0, 0, 0.5); }
+    
+    /* Min Height */
+    .min-h-screen { min-height: 100vh; }
+    
+    /* Max Width */
+    .max-w-4xl { max-width: 56rem; }
+    
+    /* Max Height */
+    .max-h-screen { max-height: 100vh; }
+    
+    /* Overflow */
+    .overflow-y-auto { overflow-y: auto; }
+    
+    /* Flex Direction */
+    .flex-col { flex-direction: column; }
+    
+    /* Text Decoration */
+    .no-underline { text-decoration: none; }
+    
+    /* List Style */
+    .list-none { list-style: none; }
+    
+    /* Border Style */
+    .border-dashed { border-style: dashed; }
+    
+    /* Text Transform */
+    .uppercase { text-transform: uppercase; }
+    .lowercase { text-transform: lowercase; }
+    .capitalize { text-transform: capitalize; }
+    
+    /* Font Weight */
+    .font-light { font-weight: 300; }
+    .font-normal { font-weight: 400; }
+    .font-medium { font-weight: 500; }
+    .font-semibold { font-weight: 600; }
+    .font-bold { font-weight: 700; }
+    .font-extrabold { font-weight: 800; }
+    .font-black { font-weight: 900; }
+    
+    /* Letter Spacing */
+    .tracking-tight { letter-spacing: -0.025em; }
+    .tracking-normal { letter-spacing: 0em; }
+    .tracking-wide { letter-spacing: 0.025em; }
+    
+    /* Line Height */
+    .leading-none { line-height: 1; }
+    .leading-tight { line-height: 1.25; }
+    .leading-snug { line-height: 1.375; }
+    .leading-normal { line-height: 1.5; }
+    .leading-relaxed { line-height: 1.625; }
+    .leading-loose { line-height: 2; }
+    
+    /* Width */
+    .w-5 { width: 1.25rem; }
+    .w-12 { width: 3rem; }
+    
+    /* Height */
+    .h-5 { height: 1.25rem; }
+    .h-12 { height: 3rem; }
+    
+    /* Margin */
+    .-mr-1 { margin-right: -0.25rem; }
+    .-ml-1 { margin-left: -0.25rem; }
+    
+    /* Padding */
+    .pt-4 { padding-top: 1rem; }
+    .pb-8 { padding-bottom: 2rem; }
+    .pl-2 { padding-left: 0.5rem; }
+    .pr-2 { padding-right: 0.5rem; }
+    
+    /* Position */
+    .relative { position: relative; }
+    .absolute { position: absolute; }
+    
+    /* Display */
+    .table { display: table; }
+    .table-row { display: table-row; }
+    .table-cell { display: table-cell; }
+    
+    /* Vertical Align */
+    .align-top { vertical-align: top; }
+    .align-middle { vertical-align: middle; }
+    .align-bottom { vertical-align: bottom; }
+    
+    /* White Space */
+    .whitespace-nowrap { white-space: nowrap; }
+    .whitespace-pre { white-space: pre; }
+    .whitespace-pre-line { white-space: pre-line; }
+    .whitespace-pre-wrap { white-space: pre-wrap; }
+    
+    /* Word Break */
+    .break-normal { overflow-wrap: normal; word-break: normal; }
+    .break-words { overflow-wrap: break-word; }
+    .break-all { word-break: break-all; }
+    
+    /* Content */
+    .content-none { content: none; }
+    
+    /* Cursor */
+    .cursor-auto { cursor: auto; }
+    .cursor-default { cursor: default; }
+    .cursor-pointer { cursor: pointer; }
+    .cursor-wait { cursor: wait; }
+    .cursor-text { cursor: text; }
+    .cursor-move { cursor: move; }
+    .cursor-help { cursor: help; }
+    .cursor-not-allowed { cursor: not-allowed; }
+    
+    /* User Select */
+    .select-none { user-select: none; }
+    .select-text { user-select: text; }
+    .select-all { user-select: all; }
+    .select-auto { user-select: auto; }
+    
+    /* Resize */
+    .resize-none { resize: none; }
+    .resize-y { resize: vertical; }
+    .resize-x { resize: horizontal; }
+    .resize { resize: both; }
+    
+    /* Appearance */
+    .appearance-none { appearance: none; }
+    
+    /* Outline */
+    .outline-none { outline: none; }
+    
+    /* Placeholder */
+    .placeholder-gray-400::placeholder { color: #9ca3af; }
+    .placeholder-gray-500::placeholder { color: #6b7280; }
+    
+    /* Backdrop */
+    .backdrop-blur { backdrop-filter: blur(8px); }
+    .backdrop-blur-sm { backdrop-filter: blur(4px); }
+    .backdrop-blur-lg { backdrop-filter: blur(16px); }
+    
+    /* Box Shadow */
+    .shadow { box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); }
+    .shadow-md { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+    .shadow-xl { box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); }
+    .shadow-2xl { box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25); }
+    
+    /* Opacity */
+    .opacity-0 { opacity: 0; }
+    .opacity-25 { opacity: 0.25; }
+    .opacity-50 { opacity: 0.5; }
+    .opacity-75 { opacity: 0.75; }
+    .opacity-100 { opacity: 1; }
+    
+    /* Transform */
+    .transform { transform: translateX(0) translateY(0) rotate(0) skewX(0) skewY(0) scaleX(1) scaleY(1); }
+    .scale-95 { transform: scale(0.95); }
+    .scale-100 { transform: scale(1); }
+    .scale-105 { transform: scale(1.05); }
+    .scale-110 { transform: scale(1.1); }
+    .scale-125 { transform: scale(1.25); }
+    .scale-150 { transform: scale(1.5); }
+    
+    /* Transition */
+    .transition { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    .transition-none { transition-property: none; }
+    .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    .transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    .transition-opacity { transition-property: opacity; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    .transition-shadow { transition-property: box-shadow; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    .transition-transform { transition-property: transform; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    
+    /* Duration */
+    .duration-75 { transition-duration: 75ms; }
+    .duration-100 { transition-duration: 100ms; }
+    .duration-150 { transition-duration: 150ms; }
+    .duration-200 { transition-duration: 200ms; }
+    .duration-300 { transition-duration: 300ms; }
+    .duration-500 { transition-duration: 500ms; }
+    .duration-700 { transition-duration: 700ms; }
+    .duration-1000 { transition-duration: 1000ms; }
+    
+    /* Ease */
+    .ease-linear { transition-timing-function: linear; }
+    .ease-in { transition-timing-function: cubic-bezier(0.4, 0, 1, 1); }
+    .ease-out { transition-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+    .ease-in-out { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+    
+    /* Animation */
+    .animate-none { animation: none; }
+    .animate-spin { animation: spin 1s linear infinite; }
+    .animate-ping { animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; }
+    .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    .animate-bounce { animation: bounce 1s infinite; }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    @keyframes ping {
+      75%, 100% { transform: scale(2); opacity: 0; }
+    }
+    
+    @keyframes pulse {
+      50% { opacity: 0.5; }
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+      50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+    }
+    
+    /* Custom Responsive Breakpoints */
+    @media (min-width: 640px) {
+      .sm\:hidden { display: none; }
+      .sm\:block { display: block; }
+      .sm\:flex { display: flex; }
+      .sm\:grid { display: grid; }
+      .sm\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .sm\:text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+      .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    
+    @media (min-width: 768px) {
+      .md\:hidden { display: none; }
+      .md\:block { display: block; }
+      .md\:flex { display: flex; }
+      .md\:grid { display: grid; }
+      .md\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .md\:text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    }
+    
+    @media (min-width: 1024px) {
+      .lg\:hidden { display: none; }
+      .lg\:block { display: block; }
+      .lg\:flex { display: flex; }
+      .lg\:grid { display: grid; }
+      .lg\:px-8 { padding-left: 2rem; padding-right: 2rem; }
+      .lg\:text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    }
+    
+    @media (min-width: 1280px) {
+      .xl\:hidden { display: none; }
+      .xl\:block { display: block; }
+      .xl\:flex { display: flex; }
+      .xl\:grid { display: grid; }
+      .xl\:px-8 { padding-left: 2rem; padding-right: 2rem; }
+      .xl\:text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    }
+    
+    @media (min-width: 1536px) {
+      .\32xl\:hidden { display: none; }
+      .\32xl\:block { display: block; }
+      .\32xl\:flex { display: flex; }
+      .\32xl\:grid { display: grid; }
+      .\32xl\:px-8 { padding-left: 2rem; padding-right: 2rem; }
+      .\32xl\:text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    }
+  </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-  <!-- Navigation -->
-  <nav class="bg-white shadow-sm border-b">
+  <!-- Enhanced Navigation -->
+  <nav class="gradient-bg shadow-lg">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16">
         <div class="flex items-center">
-          <h1 class="text-xl font-semibold text-gray-900">Blog Post Dashboard</h1>
+          <div class="flex items-center space-x-3">
+            <i class="fas fa-blog text-white text-2xl"></i>
+            <h1 class="text-xl font-bold text-white">Blog Management Dashboard</h1>
+          </div>
         </div>
         <div class="flex items-center space-x-4">
-          <a href="/" class="text-gray-500 hover:text-gray-700">← Back to Site</a>
-          <a href="/blog.html" target="_blank" class="text-blue-600 hover:text-blue-800">View Blog</a>
+          <a href="/" class="text-white/80 hover:text-white transition-colors duration-200 flex items-center space-x-1">
+            <i class="fas fa-home"></i>
+            <span>Back to Site</span>
+          </a>
+          <a href="/blog.html" target="_blank" class="text-white/80 hover:text-white transition-colors duration-200 flex items-center space-x-1">
+            <i class="fas fa-eye"></i>
+            <span>View Blog</span>
+          </a>
           <button 
             id="logoutBtn"
-            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            class="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 flex items-center space-x-2"
           >
-            🚪 Logout
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
           </button>
         </div>
       </div>
@@ -33,36 +677,72 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       
-      <!-- Left Column: Post Editor -->
+      <!-- Left Column: Enhanced Post Editor -->
       <div class="lg:col-span-2">
-        <div class="bg-white rounded-lg shadow-sm border">
-          <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-medium text-gray-900">Create New Post</h2>
+        <div class="bg-white rounded-xl shadow-lg border-0 overflow-hidden">
+          <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600">
+            <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+              <i class="fas fa-edit"></i>
+              <span>Create New Post</span>
+            </h2>
           </div>
           
           <div class="p-6 space-y-6">
+            <!-- SEO & Meta Section -->
+            <div class="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
+              <h3 class="text-lg font-semibold text-blue-900 mb-4 flex items-center space-x-2">
+                <i class="fas fa-search"></i>
+                <span>SEO & Meta Information</span>
+              </h3>
+              
             <!-- Post Title -->
-            <div>
+              <div class="mb-4">
               <label for="postTitle" class="block text-sm font-medium text-gray-700 mb-2">
-                Post Title
+                  <i class="fas fa-heading text-blue-500 mr-1"></i>
+                  Post Title <span class="text-xs text-gray-500">(SEO Optimized)</span>
               </label>
               <input 
                 type="text" 
                 id="postTitle" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter your post title..."
-              >
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  placeholder="Enter your SEO-optimized post title..."
+                  maxlength="60"
+                >
+                <div class="flex justify-between items-center mt-1">
+                  <span id="titleSeoScore" class="text-xs"></span>
+                  <span id="titleCharCount" class="text-xs text-gray-500">0/60</span>
+                </div>
+              </div>
+
+              <!-- Meta Description -->
+              <div class="mb-4">
+                <label for="metaDescription" class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-file-alt text-blue-500 mr-1"></i>
+                  Meta Description <span class="text-xs text-gray-500">(160 chars max)</span>
+                </label>
+                <textarea 
+                  id="metaDescription" 
+                  rows="3"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  placeholder="Brief, compelling description for search engines..."
+                  maxlength="160"
+                ></textarea>
+                <div class="flex justify-between items-center mt-1">
+                  <span id="metaSeoScore" class="text-xs"></span>
+                  <span id="metaCharCount" class="text-xs text-gray-500">0/160</span>
+                </div>
             </div>
 
             <!-- Post Excerpt -->
-            <div>
+              <div class="mb-4">
               <label for="postExcerpt" class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-quote-left text-blue-500 mr-1"></i>
                 Post Excerpt (Brief description)
               </label>
               <textarea 
                 id="postExcerpt" 
                 rows="3"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 placeholder="Brief description of your post..."
               ></textarea>
             </div>
@@ -70,102 +750,312 @@
             <!-- Tags -->
             <div>
               <label for="postTags" class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-tags text-blue-500 mr-1"></i>
                 Tags (comma separated)
               </label>
               <input 
                 type="text" 
                 id="postTags" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 placeholder="tag1, tag2, tag3..."
               >
+              </div>
             </div>
 
-            <!-- Rich Text Editor -->
+            <!-- Feature Image Section -->
+            <div class="bg-green-50 rounded-lg p-4 border-l-4 border-green-500">
+              <h3 class="text-lg font-semibold text-green-900 mb-4 flex items-center space-x-2">
+                <i class="fas fa-image"></i>
+                <span>Feature Image</span>
+              </h3>
+              
+              <div class="space-y-4">
+                <!-- File Upload -->
             <div>
+                  <label for="featureImageUpload" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-upload text-green-500 mr-1"></i>
+                    Upload Image
+                  </label>
+                  <div class="border-2 border-dashed border-green-300 rounded-lg p-6 text-center hover:border-green-400 transition-colors duration-200">
+                    <input 
+                      type="file" 
+                      id="featureImageUpload" 
+                      accept="image/*"
+                      class="hidden"
+                    >
+                    <button 
+                      type="button"
+                      onclick="document.getElementById('featureImageUpload').click()"
+                      class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2 mx-auto"
+                    >
+                      <i class="fas fa-upload"></i>
+                      <span>Choose Image</span>
+                    </button>
+                    <p class="text-sm text-gray-500 mt-2">PNG, JPG, GIF up to 10MB</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <label for="featureImageAlt" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-eye text-green-500 mr-1"></i>
+                    Alt Text (for accessibility & SEO)
+                  </label>
+                  <input 
+                    type="text" 
+                    id="featureImageAlt" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                    placeholder="Descriptive alt text for the image..."
+                  >
+                </div>
+                
+                <div id="featureImagePreview" class="hidden">
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Post Content
+                    <i class="fas fa-eye text-green-500 mr-1"></i>
+                    Preview
               </label>
-              <div id="editor" class="h-96 border border-gray-300 rounded-md"></div>
+                  <div class="border-2 border-dashed border-green-300 rounded-lg p-4">
+                    <img id="featureImagePreviewImg" class="w-full feature-image-preview rounded-lg" alt="Feature image preview">
+                    <button 
+                      type="button"
+                      onclick="removeFeatureImage()"
+                      class="mt-2 px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors duration-200"
+                    >
+                      Remove Image
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex space-x-4 pt-4">
+            <!-- OG Tags Section -->
+            <div class="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-500">
+              <h3 class="text-lg font-semibold text-purple-900 mb-4 flex items-center space-x-2">
+                <i class="fas fa-share-alt"></i>
+                <span>Social Media (OG Tags)</span>
+              </h3>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="ogTitle" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-heading text-purple-500 mr-1"></i>
+                    OG Title
+                  </label>
+                  <input 
+                    type="text" 
+                    id="ogTitle" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                    placeholder="Social media title..."
+                  >
+                </div>
+                
+                <div>
+                  <label for="ogDescription" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-file-alt text-purple-500 mr-1"></i>
+                    OG Description
+              </label>
+                  <textarea 
+                    id="ogDescription" 
+                    rows="2"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                    placeholder="Social media description..."
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Enhanced Rich Text Editor -->
+            <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-gray-400">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                <i class="fas fa-edit text-gray-600"></i>
+                <span>Post Content</span>
+              </h3>
+              <div id="editor" class="h-96 quill-editor-enhanced"></div>
+            </div>
+
+            <!-- Enhanced Action Buttons -->
+            <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border-l-4 border-blue-500">
+              <div class="flex flex-wrap gap-3">
               <button 
                 id="testBtn"
-                class="px-6 py-2 border border-green-300 rounded-md text-green-700 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  class="px-6 py-3 border border-green-300 rounded-lg text-green-700 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 flex items-center space-x-2"
               >
-                🧪 Test Preview
+                  <i class="fas fa-vial"></i>
+                  <span>Test Preview</span>
               </button>
               <button 
                 id="previewBtn"
-                class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                Preview Post
+                  class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center space-x-2"
+                >
+                  <i class="fas fa-eye"></i>
+                  <span>Preview Post</span>
+                </button>
+                <button 
+                  id="seoCheckBtn"
+                  class="px-6 py-3 border border-yellow-300 rounded-lg text-yellow-700 hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-200 flex items-center space-x-2"
+                >
+                  <i class="fas fa-search"></i>
+                  <span>SEO Check</span>
               </button>
               <button 
                 id="publishBtn"
-                class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center space-x-2 shadow-lg"
               >
-                📝 Publish to Blog
+                  <i class="fas fa-rocket"></i>
+                  <span>Publish to Blog</span>
               </button>
+              <button 
+                id="pasteWithFormattingBtn"
+                class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 flex items-center space-x-2"
+              >
+                <i class="fas fa-clipboard"></i>
+                <span>Paste with Formatting</span>
+              </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Right Column: Post Management & Preview -->
+      <!-- Right Column: Enhanced Analytics & Preview -->
       <div class="space-y-6">
         
-        <!-- Post Preview -->
-        <div class="bg-white rounded-lg shadow-sm border">
-          <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900">Post Preview</h3>
+        <!-- SEO Analysis -->
+        <div class="bg-white rounded-xl shadow-lg border-0 overflow-hidden">
+          <div class="px-6 py-4 bg-gradient-to-r from-green-600 to-blue-600">
+            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+              <i class="fas fa-chart-line"></i>
+              <span>SEO Analysis</span>
+            </h3>
           </div>
-          <div class="p-6">
-            <div id="postPreview" class="prose prose-sm max-w-none">
-              <p class="text-gray-500 text-center">Preview will appear here...</p>
+          <div class="p-6 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                <div class="text-2xl font-bold text-green-600" id="overallSeoScore">0</div>
+                <div class="text-sm text-green-700">Overall Score</div>
+              </div>
+              <div class="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div class="text-2xl font-bold text-blue-600" id="readabilityScore">0</div>
+                <div class="text-sm text-blue-700">Readability</div>
+              </div>
+            </div>
+            
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-600 flex items-center">
+                  <span class="seo-indicator" id="titleSeoIndicator"></span>
+                  Title Length
+                </span>
+                <span class="text-sm font-medium" id="titleSeoStatus">Not set</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-600 flex items-center">
+                  <span class="seo-indicator" id="metaSeoIndicator"></span>
+                  Meta Description
+                </span>
+                <span class="text-sm font-medium" id="metaSeoStatus">Not set</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-600 flex items-center">
+                  <span class="seo-indicator" id="contentSeoIndicator"></span>
+                  Content Quality
+                </span>
+                <span class="text-sm font-medium" id="contentSeoStatus">Empty</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-600 flex items-center">
+                  <span class="seo-indicator" id="imageSeoIndicator"></span>
+                  Images & Alt Text
+                </span>
+                <span class="text-sm font-medium" id="imageSeoStatus">Missing</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="bg-white rounded-lg shadow-sm border">
-          <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
+        <!-- Enhanced Post Preview -->
+        <div class="bg-white rounded-xl shadow-lg border-0 overflow-hidden">
+          <div class="px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600">
+            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+              <i class="fas fa-eye"></i>
+              <span>Live Preview</span>
+            </h3>
+          </div>
+          <div class="p-6">
+            <div id="postPreview" class="prose prose-sm max-w-none">
+              <p class="text-gray-500 text-center italic">Preview will appear here as you type...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enhanced Quick Actions -->
+        <div class="bg-white rounded-xl shadow-lg border-0 overflow-hidden">
+          <div class="px-6 py-4 bg-gradient-to-r from-orange-600 to-red-600">
+            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+              <i class="fas fa-bolt"></i>
+              <span>Quick Actions</span>
+            </h3>
           </div>
           <div class="p-6 space-y-3">
             <button 
               id="clearFormBtn"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center justify-center space-x-2"
             >
-              Clear Form
+              <i class="fas fa-trash-alt"></i>
+              <span>Clear Form</span>
             </button>
             <button 
               id="loadTemplateBtn"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center justify-center space-x-2"
             >
-              Load Template
+              <i class="fas fa-file-alt"></i>
+              <span>Load Template</span>
+            </button>
+            <button 
+              id="autoFillBtn"
+              class="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg hover:from-green-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 flex items-center justify-center space-x-2"
+            >
+              <i class="fas fa-magic"></i>
+              <span>Auto-Fill SEO</span>
             </button>
           </div>
         </div>
 
-        <!-- Post Stats -->
-        <div class="bg-white rounded-lg shadow-sm border">
-          <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900">Post Stats</h3>
+        <!-- Enhanced Post Stats -->
+        <div class="bg-white rounded-xl shadow-lg border-0 overflow-hidden">
+          <div class="px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600">
+            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+              <i class="fas fa-chart-bar"></i>
+              <span>Content Analytics</span>
+            </h3>
           </div>
-          <div class="p-6 space-y-3">
-            <div class="flex justify-between">
-              <span class="text-gray-600">Word Count:</span>
-              <span id="wordCount" class="font-medium">0</span>
+          <div class="p-6 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="text-center p-3 bg-indigo-50 rounded-lg">
+                <div class="text-xl font-bold text-indigo-600" id="wordCount">0</div>
+                <div class="text-xs text-indigo-700">Words</div>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">Character Count:</span>
-              <span id="charCount" class="font-medium">0</span>
+              <div class="text-center p-3 bg-purple-50 rounded-lg">
+                <div class="text-xl font-bold text-purple-600" id="charCount">0</div>
+                <div class="text-xs text-purple-700">Characters</div>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">Reading Time:</span>
-              <span id="readingTime" class="font-medium">0 min</span>
+            </div>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Reading Time:</span>
+                <span id="readingTime" class="font-medium text-gray-900">0 min</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Sentences:</span>
+                <span id="sentenceCount" class="font-medium text-gray-900">0</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Paragraphs:</span>
+                <span id="paragraphCount" class="font-medium text-gray-900">0</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Images:</span>
+                <span id="imageCount" class="font-medium text-gray-900">0</span>
+            </div>
             </div>
           </div>
         </div>
@@ -199,27 +1089,92 @@
   </div>
 
   <script>
-    // Initialize Quill editor
-    const quill = new Quill('#editor', {
+    // Initialize Quill editor with proper configuration
+    let quill;
+    
+    function initializeQuill() {
+      try {
+        quill = new Quill('#editor', {
       theme: 'snow',
       modules: {
-        toolbar: [
-          [{ 'header': [1, 2, 3, false] }],
+            clipboard: {
+              matchVisual: false
+            },
+            toolbar: {
+              container: [
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
           ['bold', 'italic', 'underline', 'strike'],
           [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'indent': '-1'}, { 'indent': '+1' }],
           [{ 'color': [] }, { 'background': [] }],
+                [{ 'align': [] }],
           ['link', 'image'],
-          ['clean']
-        ]
+                ['blockquote', 'code-block'],
+                [{ 'table': [] }],
+                ['clean'],
+                ['paste']
+              ],
+              handlers: {
+                'image': function() {
+                  const input = document.createElement('input');
+                  input.setAttribute('type', 'file');
+                  input.setAttribute('accept', 'image/*');
+                  input.click();
+                  
+                  input.onchange = function() {
+                    const file = input.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = function(e) {
+                        const range = quill.getSelection();
+                        quill.insertEmbed(range.index, 'image', e.target.result);
+                        quill.setSelection(range.index + 1);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  };
+                }
+              }
+            }
       },
       placeholder: 'Start writing your blog post...'
     });
 
-    // Test Quill initialization
+        console.log('Quill editor initialized successfully:', quill);
+        
+            // Add event listeners for real-time updates
+            quill.on('text-change', function() {
+              updateStats();
+              updatePreview();
+            });
+            
+            // Simple paste handling
+            quill.on('text-change', function(delta, oldDelta, source) {
+              if (source === 'user') {
+                // Auto-generate SEO fields when content changes
+                autoGenerateSeoFields();
+              }
+            });
+        
+      } catch (error) {
+        console.error('Error initializing Quill editor:', error);
+        // Fallback: show a simple textarea
+        document.getElementById('editor').innerHTML = '<textarea id="fallbackEditor" style="width: 100%; height: 400px; border: 1px solid #ccc; padding: 10px; font-family: inherit;"></textarea>';
+      }
+    }
+    
+    // Initialize everything when DOM is ready
+    function initializeEverything() {
+      initializeQuill();
+      
+      // Wait a bit for Quill to fully initialize
+      setTimeout(() => {
     console.log('Quill editor initialized:', quill);
+        if (quill) {
     console.log('Quill root element:', quill.root);
+        }
 
-    // Elements
+        // Enhanced Elements
     const postTitle = document.getElementById('postTitle');
     const postExcerpt = document.getElementById('postExcerpt');
     const postTags = document.getElementById('postTags');
@@ -229,6 +1184,39 @@
     const wordCount = document.getElementById('wordCount');
     const charCount = document.getElementById('charCount');
     const readingTime = document.getElementById('readingTime');
+    
+    // New SEO and Image elements
+    const metaDescription = document.getElementById('metaDescription');
+    const featureImageUpload = document.getElementById('featureImageUpload');
+    const featureImageAlt = document.getElementById('featureImageAlt');
+    const featureImagePreview = document.getElementById('featureImagePreview');
+    const featureImagePreviewImg = document.getElementById('featureImagePreviewImg');
+    const ogTitle = document.getElementById('ogTitle');
+    const ogDescription = document.getElementById('ogDescription');
+    
+    // Feature image data
+    let featureImageData = null;
+    
+    // SEO Analysis elements
+    const titleSeoScore = document.getElementById('titleSeoScore');
+    const metaSeoScore = document.getElementById('metaSeoScore');
+    const titleCharCount = document.getElementById('titleCharCount');
+    const metaCharCount = document.getElementById('metaCharCount');
+    const overallSeoScore = document.getElementById('overallSeoScore');
+    const readabilityScore = document.getElementById('readabilityScore');
+    const titleSeoIndicator = document.getElementById('titleSeoIndicator');
+    const metaSeoIndicator = document.getElementById('metaSeoIndicator');
+    const contentSeoIndicator = document.getElementById('contentSeoIndicator');
+    const imageSeoIndicator = document.getElementById('imageSeoIndicator');
+    const titleSeoStatus = document.getElementById('titleSeoStatus');
+    const metaSeoStatus = document.getElementById('metaSeoStatus');
+    const contentSeoStatus = document.getElementById('contentSeoStatus');
+    const imageSeoStatus = document.getElementById('imageSeoStatus');
+    
+    // Enhanced stats elements
+    const sentenceCount = document.getElementById('sentenceCount');
+    const paragraphCount = document.getElementById('paragraphCount');
+    const imageCount = document.getElementById('imageCount');
 
     // Debug: Check if elements are found
     console.log('Elements found:', {
@@ -240,47 +1228,441 @@
       previewModal: !!previewModal
     });
 
-    // Update stats as user types
+    // Enhanced stats and SEO analysis
     function updateStats() {
       const content = quill.getText();
+      const htmlContent = quill.root.innerHTML;
       const words = content.trim().split(/\s+/).filter(word => word.length > 0);
       const chars = content.length;
-      const readingTimeMinutes = Math.ceil(words.length / 200); // Average reading speed
+      const readingTimeMinutes = Math.ceil(words.length / 200);
+      const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+      const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+      const images = (htmlContent.match(/<img/g) || []).length;
 
-      wordCount.textContent = words.length;
-      charCount.textContent = chars;
-      readingTime.textContent = `${readingTimeMinutes} min`;
+      // Update basic stats
+      if (wordCount) wordCount.textContent = words.length;
+      if (charCount) charCount.textContent = chars;
+      if (readingTime) readingTime.textContent = `${readingTimeMinutes} min`;
+      if (sentenceCount) sentenceCount.textContent = sentences.length;
+      if (paragraphCount) paragraphCount.textContent = paragraphs.length;
+      if (imageCount) imageCount.textContent = images;
+      
+      // Update SEO analysis
+      updateSeoAnalysis();
     }
 
-    quill.on('text-change', updateStats);
-
-    // Test button functionality
-    document.getElementById('testBtn').addEventListener('click', () => {
-      console.log('Test button clicked'); // Debug log
+    // SEO Analysis Functions
+    function updateSeoAnalysis() {
+      const title = postTitle?.value || '';
+      const meta = metaDescription?.value || '';
+      const content = (quill && quill.getText) ? quill.getText() : '';
+      const htmlContent = (quill && quill.root) ? quill.root.innerHTML : '';
       
-      // Test basic functionality
-      const testHTML = `
+      // Title SEO
+      updateTitleSeo(title);
+      
+      // Meta Description SEO
+      updateMetaSeo(meta);
+      
+      // Content SEO
+      updateContentSeo(content, htmlContent);
+      
+      // Image SEO
+      updateImageSeo(featureImageData, featureImageAlt?.value, htmlContent);
+      
+      // Overall scores
+      updateOverallScores(title, meta, content, htmlContent);
+    }
+
+    function updateTitleSeo(title) {
+      const length = title.length;
+      let score = 0;
+      let status = 'Not set';
+      let indicatorClass = '';
+      
+      if (length > 0) {
+        if (length >= 30 && length <= 60) {
+          score = 100;
+          status = 'Excellent';
+          indicatorClass = 'excellent';
+        } else if (length >= 20 && length <= 70) {
+          score = 70;
+          status = 'Good';
+          indicatorClass = 'good';
+      } else {
+          score = 30;
+          status = 'Too short/long';
+          indicatorClass = 'poor';
+        }
+      }
+      
+      if (titleSeoScore) titleSeoScore.textContent = score > 0 ? `${score}/100` : '';
+      if (titleSeoStatus) titleSeoStatus.textContent = status;
+      if (titleSeoIndicator) {
+        titleSeoIndicator.className = `seo-indicator ${indicatorClass}`;
+      }
+      if (titleCharCount) titleCharCount.textContent = `${length}/60`;
+    }
+
+    function updateMetaSeo(meta) {
+      const length = meta.length;
+      let score = 0;
+      let status = 'Not set';
+      let indicatorClass = '';
+      
+      if (length > 0) {
+        if (length >= 120 && length <= 160) {
+          score = 100;
+          status = 'Excellent';
+          indicatorClass = 'excellent';
+        } else if (length >= 100 && length <= 180) {
+          score = 70;
+          status = 'Good';
+          indicatorClass = 'good';
+      } else {
+          score = 30;
+          status = 'Too short/long';
+          indicatorClass = 'poor';
+        }
+      }
+      
+      if (metaSeoScore) metaSeoScore.textContent = score > 0 ? `${score}/100` : '';
+      if (metaSeoStatus) metaSeoStatus.textContent = status;
+      if (metaSeoIndicator) {
+        metaSeoIndicator.className = `seo-indicator ${indicatorClass}`;
+      }
+      if (metaCharCount) metaCharCount.textContent = `${length}/160`;
+    }
+
+    function updateContentSeo(content, htmlContent) {
+      const wordCount = content.trim().split(/\s+/).filter(word => word.length > 0).length;
+      const hasHeadings = /<h[1-6]>/i.test(htmlContent);
+      const hasImages = /<img/i.test(htmlContent);
+      const hasLinks = /<a\s+href/i.test(htmlContent);
+      
+      let score = 0;
+      let status = 'Empty';
+      let indicatorClass = 'poor';
+      
+      if (wordCount > 0) {
+        if (wordCount >= 300 && hasHeadings && (hasImages || hasLinks)) {
+          score = 100;
+          status = 'Excellent';
+          indicatorClass = 'excellent';
+        } else if (wordCount >= 150 && hasHeadings) {
+          score = 70;
+          status = 'Good';
+          indicatorClass = 'good';
+      } else {
+          score = 40;
+          status = 'Basic';
+          indicatorClass = 'good';
+        }
+      }
+      
+      if (contentSeoStatus) contentSeoStatus.textContent = status;
+      if (contentSeoIndicator) {
+        contentSeoIndicator.className = `seo-indicator ${indicatorClass}`;
+      }
+    }
+
+    function updateImageSeo(imageData, altText, htmlContent) {
+      const hasFeatureImage = imageData && imageData.trim().length > 0;
+      const hasAltText = altText && altText.trim().length > 0;
+      const contentImages = (htmlContent.match(/<img/g) || []).length;
+      
+      let status = 'Missing';
+      let indicatorClass = 'poor';
+      
+      if (hasFeatureImage && hasAltText) {
+        status = 'Excellent';
+        indicatorClass = 'excellent';
+      } else if (hasFeatureImage || contentImages > 0) {
+        status = 'Partial';
+        indicatorClass = 'good';
+      }
+      
+      if (imageSeoStatus) imageSeoStatus.textContent = status;
+      if (imageSeoIndicator) {
+        imageSeoIndicator.className = `seo-indicator ${indicatorClass}`;
+      }
+    }
+
+    function updateOverallScores(title, meta, content, htmlContent) {
+      const titleScore = getSeoScore(title, 30, 60);
+      const metaScore = getSeoScore(meta, 120, 160);
+      const contentScore = getContentScore(content, htmlContent);
+      
+      const overallScore = Math.round((titleScore + metaScore + contentScore) / 3);
+      const readabilityScore = calculateReadabilityScore(content);
+      
+      if (overallSeoScore) {
+        overallSeoScore.textContent = overallScore;
+        overallSeoScore.className = `text-2xl font-bold ${getScoreColor(overallScore)}`;
+      }
+      if (readabilityScore) {
+        readabilityScore.textContent = readabilityScore;
+        readabilityScore.className = `text-2xl font-bold ${getScoreColor(readabilityScore)}`;
+      }
+    }
+
+    function getSeoScore(text, min, max) {
+      if (!text || text.length === 0) return 0;
+      const length = text.length;
+      if (length >= min && length <= max) return 100;
+      if (length >= min * 0.8 && length <= max * 1.2) return 70;
+      return 30;
+    }
+
+    function getContentScore(content, htmlContent) {
+      const wordCount = content.trim().split(/\s+/).filter(word => word.length > 0).length;
+      const hasHeadings = /<h[1-6]>/i.test(htmlContent);
+      const hasImages = /<img/i.test(htmlContent);
+      
+      if (wordCount < 100) return 0;
+      if (wordCount >= 300 && hasHeadings && hasImages) return 100;
+      if (wordCount >= 150 && hasHeadings) return 70;
+      return 40;
+    }
+
+    function calculateReadabilityScore(content) {
+      const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+      const words = content.trim().split(/\s+/).filter(word => word.length > 0);
+      const syllables = words.reduce((total, word) => total + countSyllables(word), 0);
+      
+      if (sentences.length === 0 || words.length === 0) return 0;
+      
+      const avgWordsPerSentence = words.length / sentences.length;
+      const avgSyllablesPerWord = syllables / words.length;
+      
+      // Simplified Flesch Reading Ease
+      const score = 206.835 - (1.015 * avgWordsPerSentence) - (84.6 * avgSyllablesPerWord);
+      return Math.max(0, Math.min(100, Math.round(score)));
+    }
+
+    function countSyllables(word) {
+      word = word.toLowerCase();
+      const vowels = 'aeiouy';
+      let count = 0;
+      let previousWasVowel = false;
+      
+      for (let i = 0; i < word.length; i++) {
+        const isVowel = vowels.includes(word[i]);
+        if (isVowel && !previousWasVowel) count++;
+        previousWasVowel = isVowel;
+      }
+      
+      if (word.endsWith('e')) count--;
+      return Math.max(1, count);
+    }
+
+    function getScoreColor(score) {
+      if (score >= 80) return 'text-green-600';
+      if (score >= 60) return 'text-yellow-600';
+      return 'text-red-600';
+    }
+
+    // Feature Image Upload and Preview
+    function handleFeatureImageUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        // Validate file size (10MB max)
+        if (file.size > 10 * 1024 * 1024) {
+          showMessage('Image file is too large. Please choose an image under 10MB.', 'error');
+          return;
+        }
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          showMessage('Please select a valid image file.', 'error');
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          featureImageData = e.target.result;
+          featureImagePreviewImg.src = featureImageData;
+          featureImagePreviewImg.alt = featureImageAlt?.value || 'Feature image';
+          featureImagePreview?.classList.remove('hidden');
+          
+          // Auto-fill alt text if empty
+          if (!featureImageAlt?.value) {
+            const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+            featureImageAlt.value = fileName.replace(/[-_]/g, ' '); // Replace dashes/underscores with spaces
+          }
+          
+          updateSeoAnalysis();
+          autoGenerateSeoFields(); // Auto-generate SEO fields when image is uploaded
+          showMessage('Feature image uploaded successfully!', 'success');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    function removeFeatureImage() {
+      featureImageData = null;
+      featureImageUpload.value = '';
+      featureImagePreview?.classList.add('hidden');
+      updateSeoAnalysis();
+      showMessage('Feature image removed.', 'info');
+    }
+    
+    function updateFeatureImagePreview() {
+      // This function is now handled by handleFeatureImageUpload
+    }
+
+    // Auto-fill SEO function
+    // Auto-generate SEO fields based on title and content
+    function autoGenerateSeoFields() {
+      const title = postTitle?.value || '';
+      const content = quill ? quill.getText() : '';
+      const htmlContent = quill ? quill.root.innerHTML : '';
+      
+      // Auto-generate Meta Description (if empty)
+      if (title && content && !metaDescription?.value) {
+        const cleanContent = content.replace(/\n+/g, ' ').trim();
+        const excerpt = cleanContent.length > 120 ? 
+          cleanContent.substring(0, 120) + '...' : 
+          cleanContent;
+        metaDescription.value = `${title}. ${excerpt}`;
+        metaDescription.style.backgroundColor = '#f0f9ff'; // Light blue background to indicate auto-generated
+        setTimeout(() => { metaDescription.style.backgroundColor = ''; }, 2000);
+      }
+      
+      // Auto-generate OG Title (if empty)
+      if (title && !ogTitle?.value) {
+        ogTitle.value = title;
+        ogTitle.style.backgroundColor = '#f0f9ff';
+        setTimeout(() => { ogTitle.style.backgroundColor = ''; }, 2000);
+      }
+      
+      // Auto-generate OG Description (if empty)
+      if (metaDescription?.value && !ogDescription?.value) {
+        ogDescription.value = metaDescription.value;
+        ogDescription.style.backgroundColor = '#f0f9ff';
+        setTimeout(() => { ogDescription.style.backgroundColor = ''; }, 2000);
+      }
+      
+      // Auto-generate Alt Text for feature image (if empty)
+      if (title && featureImageData && !featureImageAlt?.value) {
+        featureImageAlt.value = `${title} - Image converter blog post`;
+        featureImageAlt.style.backgroundColor = '#f0f9ff';
+        setTimeout(() => { featureImageAlt.style.backgroundColor = ''; }, 2000);
+      }
+      
+      // Auto-generate Post Excerpt (if empty)
+      if (title && content && !postExcerpt?.value) {
+        const cleanContent = content.replace(/\n+/g, ' ').trim();
+        const excerpt = cleanContent.length > 150 ? 
+          cleanContent.substring(0, 150) + '...' : 
+          cleanContent;
+        postExcerpt.value = excerpt;
+        postExcerpt.style.backgroundColor = '#f0f9ff';
+        setTimeout(() => { postExcerpt.style.backgroundColor = ''; }, 2000);
+      }
+      
+      // Update SEO analysis
+      updateSeoAnalysis();
+      updatePreview();
+    }
+
+    function autoFillSeo() {
+      autoGenerateSeoFields();
+      showMessage('SEO fields auto-generated!', 'success');
+    }
+
+    // Update preview function
+    function updatePreview() {
+      if (!postPreview) return;
+      
+      const title = postTitle?.value || 'Untitled Post';
+      const excerpt = postExcerpt?.value || 'No excerpt provided';
+      const tags = postTags?.value || '';
+      const content = quill ? quill.root.innerHTML : '<p>No content yet...</p>';
+      const metaDesc = metaDescription?.value || excerpt;
+
+      const previewHTML = `
         <article class="mb-8 pb-8 border-b border-gray-200">
-          <h2 class="text-2xl font-bold text-gray-900 mb-3">🧪 Test Post</h2>
-          <p class="text-gray-600 mb-4 italic">This is a test post to verify preview functionality</p>
-          <div class="prose prose-lg max-w-none">
-            <p>This is a <strong>test paragraph</strong> with some <em>formatted text</em>.</p>
-            <ul>
-              <li>Test list item 1</li>
-              <li>Test list item 2</li>
-              <li>Test list item 3</li>
-            </ul>
+          ${featureImageData ? `<img src="${featureImageData}" alt="${featureImageAlt?.value || 'Feature image'}" class="w-full h-64 object-cover rounded-lg mb-4">` : ''}
+          <h2 class="text-2xl font-bold text-gray-900 mb-3">${title}</h2>
+          ${excerpt ? `<p class="text-gray-600 mb-4 italic">${excerpt}</p>` : ''}
+          <div class="prose prose-lg max-w-none">${content}</div>
+          ${tags ? `<div class="mt-4"><span class="text-sm text-gray-500">Tags: ${tags}</span></div>` : ''}
+          <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+            <h4 class="font-semibold text-blue-900 mb-2">SEO Preview:</h4>
+            <p class="text-sm text-blue-700"><strong>Meta Description:</strong> ${metaDesc}</p>
           </div>
-          <div class="mt-4"><span class="text-sm text-gray-500">Tags: test, preview, debug</span></div>
         </article>
       `;
 
-      // Update both preview areas
+        postPreview.innerHTML = previewHTML;
+    }
+
+    // Event listeners
+    if (postTitle) postTitle.addEventListener('input', () => {
+      updateSeoAnalysis();
+      updatePreview();
+      autoGenerateSeoFields();
+    });
+    
+    if (postExcerpt) postExcerpt.addEventListener('input', updatePreview);
+    if (postTags) postTags.addEventListener('input', updatePreview);
+    if (metaDescription) metaDescription.addEventListener('input', () => {
+      updateSeoAnalysis();
+      updatePreview();
+    });
+    
+    if (featureImageUpload) featureImageUpload.addEventListener('change', handleFeatureImageUpload);
+    if (featureImageAlt) featureImageAlt.addEventListener('input', updateSeoAnalysis);
+
+    // Enhanced message system
+    function showMessage(message, type = 'info') {
+      const messageContainer = document.getElementById('messageContainer');
+      const messageContent = document.getElementById('messageContent');
+      
+      if (!messageContainer || !messageContent) return;
+      
+      const colors = {
+        success: 'bg-green-500 text-white',
+        error: 'bg-red-500 text-white',
+        warning: 'bg-yellow-500 text-black',
+        info: 'bg-blue-500 text-white'
+      };
+      
+      messageContent.className = `px-6 py-4 rounded-md shadow-lg ${colors[type] || colors.info}`;
+      messageContent.textContent = message;
+      messageContainer.classList.remove('hidden');
+      
+      setTimeout(() => {
+        messageContainer.classList.add('hidden');
+      }, 3000);
+    }
+
+    // Enhanced button functionality
+    document.getElementById('testBtn').addEventListener('click', () => {
+      console.log('Test Preview button clicked'); // Debug log
+      // Generate test content with current form data
+      const title = postTitle?.value || 'Test Post';
+      const excerpt = postExcerpt?.value || 'This is a test post to verify preview functionality';
+      const tags = postTags?.value || 'test, preview, debug';
+      const content = (quill && quill.root) ? quill.root.innerHTML : '<p>This is a test paragraph with some <strong>formatted text</strong>.</p>';
+      const featureImage = featureImageData;
+      
+      const testHTML = `
+        <article class="mb-8 pb-8 border-b border-gray-200">
+          ${featureImage ? `<img src="${featureImage}" alt="${featureImageAlt?.value || 'Feature image'}" class="w-full h-48 object-cover rounded-lg mb-4">` : ''}
+          <h2 class="text-2xl font-bold text-gray-900 mb-3">${title}</h2>
+          <p class="text-gray-600 mb-4 italic">${excerpt}</p>
+          <div class="prose prose-lg max-w-none">
+            ${content}
+          </div>
+          <div class="mt-4"><span class="text-sm text-gray-500">Tags: ${tags}</span></div>
+        </article>
+      `;
+
       if (postPreview) {
         postPreview.innerHTML = testHTML;
-        console.log('Test preview updated in side panel'); // Debug log
-      } else {
-        console.error('postPreview element not found!'); // Debug log
+        showMessage('Test preview generated successfully!', 'success');
       }
       
       if (modalPreview) {
@@ -300,49 +1682,19 @@
       showMessage('Test preview loaded! Check console for debug info.', 'success');
     });
 
-    // Preview functionality
-    document.getElementById('previewBtn').addEventListener('click', () => {
-      console.log('Preview button clicked'); // Debug log
-      
-      const title = postTitle.value || 'Untitled Post';
-      const excerpt = postExcerpt.value || 'No excerpt provided';
-      const tags = postTags.value || '';
-      const content = quill.root.innerHTML || '<p>No content yet...</p>';
-
-      console.log('Preview data:', { title, excerpt, tags, content }); // Debug log
-
-      const previewHTML = `
-        <article class="mb-8 pb-8 border-b border-gray-200">
-          <h2 class="text-2xl font-bold text-gray-900 mb-3">${title}</h2>
-          ${excerpt ? `<p class="text-gray-600 mb-4 italic">${excerpt}</p>` : ''}
-          <div class="prose prose-lg max-w-none">${content}</div>
-          ${tags ? `<div class="mt-4"><span class="text-sm text-gray-500">Tags: ${tags}</span></div>` : ''}
-        </article>
-      `;
-
-      // Update both preview areas
-      if (postPreview) {
-        postPreview.innerHTML = previewHTML;
-        console.log('Side preview updated'); // Debug log
-      } else {
-        console.error('postPreview element not found!'); // Debug log
-      }
+    // Enhanced Preview functionality
+    document.getElementById('previewBtn')?.addEventListener('click', () => {
+      console.log('Preview Post button clicked'); // Debug log
+      updatePreview();
       
       if (modalPreview) {
-        modalPreview.innerHTML = previewHTML;
-        console.log('Modal preview updated'); // Debug log
-      } else {
-        console.error('modalPreview element not found!'); // Debug log
+        modalPreview.innerHTML = postPreview.innerHTML;
       }
       
       if (previewModal) {
         previewModal.classList.remove('hidden');
-        console.log('Modal shown'); // Debug log
-      } else {
-        console.error('previewModal element not found!'); // Debug log
+        showMessage('Preview opened in modal!', 'success');
       }
-      
-      console.log('Preview updated:', previewHTML); // Debug log
     });
 
     // Close preview modal
@@ -355,12 +1707,12 @@
 
     // Publish functionality
     document.getElementById('publishBtn').addEventListener('click', async () => {
-      console.log('Publish button clicked'); // Debug log
+      console.log('Publish to Blog button clicked'); // Debug log
       
       const title = postTitle.value.trim();
       const excerpt = postExcerpt.value.trim();
       const tags = postTags.value.trim();
-      const content = quill.root.innerHTML;
+      const content = (quill && quill.root) ? quill.root.innerHTML : '';
 
       console.log('Publish data:', { title, excerpt, tags, content }); // Debug log
 
@@ -428,17 +1780,6 @@
       }
     });
 
-    // Clear form
-    document.getElementById('clearFormBtn').addEventListener('click', clearForm);
-
-    // Load template
-    document.getElementById('loadTemplateBtn').addEventListener('click', () => {
-      postTitle.value = 'Sample Blog Post Title';
-      postExcerpt.value = 'This is a sample excerpt for your blog post. It should be brief and engaging.';
-      postTags.value = 'sample, blog, post';
-      quill.setText('Start writing your blog post content here...\n\nYou can use the toolbar above to format your text.\n\nAdd headers, lists, and other formatting as needed.');
-    });
-
     // Logout functionality
     document.getElementById('logoutBtn').addEventListener('click', () => {
       if (confirm('Are you sure you want to logout?')) {
@@ -469,10 +1810,142 @@
       }, 5000);
     }
 
+    // Enhanced button handlers
+    document.getElementById('seoCheckBtn')?.addEventListener('click', () => {
+      console.log('SEO Check button clicked'); // Debug log
+      updateSeoAnalysis();
+      
+      const title = postTitle?.value || '';
+      const meta = metaDescription?.value || '';
+      const content = (quill && quill.getText) ? quill.getText() : '';
+      
+      let issues = [];
+      
+      if (!title) issues.push('Missing title');
+      if (!meta) issues.push('Missing meta description');
+      if (content.length < 100) issues.push('Content too short (minimum 100 words)');
+      if (!featureImageData) issues.push('No feature image');
+      if (!featureImageAlt?.value) issues.push('Missing alt text for feature image');
+      
+      if (issues.length === 0) {
+        showMessage('SEO check passed! Your post looks great.', 'success');
+      } else {
+        showMessage(`SEO issues found: ${issues.join(', ')}`, 'warning');
+      }
+    });
+
+    document.getElementById('autoFillBtn')?.addEventListener('click', autoFillSeo);
+
+    // Paste with formatting button
+    document.getElementById('pasteWithFormattingBtn')?.addEventListener('click', async () => {
+      try {
+        // Read HTML content from clipboard
+        const clipboardItems = await navigator.clipboard.read();
+        for (const clipboardItem of clipboardItems) {
+          for (const type of clipboardItem.types) {
+            if (type === 'text/html') {
+              const htmlBlob = await clipboardItem.getType(type);
+              const htmlContent = await htmlBlob.text();
+              console.log('Pasting HTML content:', htmlContent);
+              
+              // Insert HTML content preserving formatting
+              const range = quill.getSelection();
+              quill.clipboard.dangerouslyPasteHTML(range.index, htmlContent);
+              showMessage('Content pasted with formatting preserved!', 'success');
+              return;
+            }
+          }
+        }
+        
+        // Fallback: try plain text
+        const text = await navigator.clipboard.readText();
+        const range = quill.getSelection();
+        quill.insertText(range.index, text);
+        showMessage('Plain text pasted (no HTML formatting found)', 'info');
+        
+      } catch (error) {
+        console.error('Paste with formatting failed:', error);
+        showMessage('Paste failed. Please try Ctrl+V or Cmd+V', 'error');
+      }
+    });
+
+    // Enhanced clear form
+    document.getElementById('clearFormBtn')?.addEventListener('click', () => {
+      postTitle.value = '';
+      postExcerpt.value = '';
+      postTags.value = '';
+      metaDescription.value = '';
+      featureImageUpload.value = '';
+      featureImageAlt.value = '';
+      ogTitle.value = '';
+      ogDescription.value = '';
+      featureImageData = null;
+      
+      if (quill) {
+        quill.setContents([]);
+      }
+      
+      updateSeoAnalysis();
+      featureImagePreview?.classList.add('hidden');
+      updatePreview();
+      
+      showMessage('Form cleared successfully!', 'success');
+    });
+
+    // Enhanced load template
+    document.getElementById('loadTemplateBtn')?.addEventListener('click', () => {
+      const template = {
+        title: 'Ultimate Guide to Image Conversion: HEIC to JPG',
+        excerpt: 'Learn everything you need to know about converting HEIC images to JPG format. Discover the best tools, techniques, and tips for professional image conversion.',
+        tags: 'image conversion, HEIC, JPG, photography, tutorial',
+        metaDescription: 'Complete guide to converting HEIC images to JPG format. Learn professional techniques, best tools, and expert tips for high-quality image conversion.',
+        content: `<h2>Introduction</h2>
+        <p>Image conversion is an essential skill for photographers and content creators. In this comprehensive guide, we'll explore everything you need to know about converting HEIC images to JPG format.</p>
+        
+        <h2>Why Convert HEIC to JPG?</h2>
+        <p>HEIC (High Efficiency Image Container) is Apple's modern image format that offers superior compression. However, JPG remains the most widely supported format across platforms.</p>
+        
+        <h2>Best Conversion Methods</h2>
+        <ul>
+          <li>Online converters (fast and convenient)</li>
+          <li>Desktop software (professional quality)</li>
+          <li>Mobile apps (on-the-go conversion)</li>
+        </ul>
+        
+        <h2>Conclusion</h2>
+        <p>Converting HEIC to JPG is straightforward when you know the right tools and techniques. Choose the method that best fits your needs and workflow.</p>`,
+        ogTitle: 'Ultimate Guide to Image Conversion: HEIC to JPG',
+        ogDescription: 'Complete guide to converting HEIC images to JPG format. Learn professional techniques, best tools, and expert tips for high-quality image conversion.'
+      };
+      
+      postTitle.value = template.title;
+      postExcerpt.value = template.excerpt;
+      postTags.value = template.tags;
+      metaDescription.value = template.metaDescription;
+      ogTitle.value = template.ogTitle;
+      ogDescription.value = template.ogDescription;
+      
+      if (quill) {
+        quill.root.innerHTML = template.content;
+      }
+      
+      updateStats();
+      updatePreview();
+      showMessage('Professional template loaded successfully!', 'success');
+    });
+
     // Initialize stats
     updateStats();
     
-    console.log('Blog dashboard initialized successfully'); // Debug log
+        console.log('Enhanced blog dashboard initialized successfully'); // Debug log
+      }, 100);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeEverything);
+    } else {
+      initializeEverything();
+    }
   </script>
 </body>
 </html>

@@ -14,8 +14,110 @@ const { Worker } = require('worker_threads');
 const nodemailer = require('nodemailer');
 const compression = require('compression');
 
+// Subscription system imports
+const { admin, clientConfig } = require('./config/firebase');
+const Database = require('./config/firestore');
+const paymentsRouter = require('./routes/payments');
+
+// File cleanup system
+const fileCleanupManager = require('./utils/fileCleanup');
+const { optionalAuth, extractFileInfo, checkConversionQuota, logConversionUsage } = require('./middleware/auth');
+
+// Security packages
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const slowDown = require('express-slow-down');
+
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Security middleware - protect against spam and code theft
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.quilljs.com", "https://cdn.tailwindcss.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com", "https://cdnjs.cloudflare.com", "https://cdn.quilljs.com", "https://www.gstatic.com", "https://apis.google.com", "https://accounts.google.com", "https://secure.payu.in", "https://test.payu.in", "https://cdn.tailwindcss.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
+              connectSrc: ["'self'", "https://www.google-analytics.com", "https://accounts.google.com", "https://firestore.googleapis.com", "https://identitytoolkit.googleapis.com", "https://www.gstatic.com", "https://securetoken.googleapis.com", "https://ipapi.co", "https://firebase.googleapis.com", "https://api.exchangerate-api.com", "https://secure.payu.in", "https://test.payu.in"],
+      fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["https://accounts.google.com", "https://imgtojpg.firebaseapp.com", "https://secure.payu.in", "https://test.payu.in"],
+      formAction: ["'self'", "https://secure.payu.in", "https://test.payu.in"],
+    },
+  },
+  crossOriginOpenerPolicy: false, // Disable COOP to allow Google OAuth popups
+  crossOriginEmbedderPolicy: false, // Allow file downloads
+  crossOriginResourcePolicy: false // Allow cross-origin resources
+}));
+
+// Smart caching: cache static assets, no-cache for dynamic content
+app.use((req, res, next) => {
+  const url = req.url;
+  
+  // Cache SEO files (robots.txt, sitemap.xml)
+  if (url.match(/\/(robots\.txt|sitemap\.xml)$/)) {
+    res.set({
+      'Cache-Control': 'public, max-age=86400', // 24 hours
+      'Expires': new Date(Date.now() + 86400 * 1000).toUTCString()
+    });
+  }
+  // Cache static assets (images, CSS, JS, fonts, etc.)
+  else if (url.match(/\.(png|jpg|jpeg|gif|webp|svg|css|js|woff|woff2|ttf|eot|ico)$/)) {
+    res.set({
+      'Cache-Control': 'public, max-age=31536000', // 1 year
+      'Expires': new Date(Date.now() + 31536000 * 1000).toUTCString()
+    });
+  } 
+  // Cache HTML files for shorter period
+  else if (url.match(/\.html$/)) {
+    res.set({
+      'Cache-Control': 'public, max-age=3600', // 1 hour
+      'Expires': new Date(Date.now() + 3600 * 1000).toUTCString()
+    });
+  }
+  // No cache for dynamic content (API endpoints, converted files, etc.)
+  else {
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+  }
+  next();
+});
+
+// Rate limiting for conversion endpoint (prevent spam/abuse)
+const convertRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500, // limit each IP to 500 conversion requests per windowMs (much more reasonable)
+  message: {
+    success: false,
+    message: 'Too many conversion requests. Please try again in 15 minutes.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Slow down repeated requests (additional spam protection)
+const speedLimiter = slowDown({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  delayAfter: 100, // allow 100 requests per 15 minutes at full speed (much more reasonable)
+  delayMs: 200, // slow down subsequent requests by 200ms per request (less aggressive)
+});
+
+// General rate limiting for all endpoints
+const generalRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // limit each IP to 1000 requests per windowMs (much more reasonable)
+  message: {
+    success: false,
+    message: 'Too many requests. Please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Performance monitoring
 const getMemoryUsage = () => {
@@ -33,6 +135,30 @@ setInterval(() => {
   const mem = getMemoryUsage();
   console.log(`📊 Memory Usage - RSS: ${mem.rss}MB, Heap: ${mem.heapUsed}/${mem.heapTotal}MB, External: ${mem.external}MB`);
 }, 30000);
+
+// Health check endpoint (bypasses all rate limiting)
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// Trust proxy for ALB (fix rate limiting behind load balancer)
+app.set('trust proxy', 1);
+
+// Initialize Firebase Admin SDK (non-blocking)
+try {
+  // Firebase Admin SDK is initialized in config/firebase.js
+  console.log('✅ Firebase Admin SDK initialized successfully');
+} catch (error) {
+  console.error('❌ Firebase Admin SDK initialization failed:', error.message);
+}
+
+// Security middleware - protect against spam and code theft
+app.use(generalRateLimit); // Apply general rate limiting to all routes
+app.use(speedLimiter); // Slow down repeated requests
 
 // Enable compression middleware for better performance
 app.use(compression({
@@ -173,14 +299,14 @@ async function sendAnalyticsEmail(day) {
 
 scheduleDailyAnalyticsEmail();
 
-app.use(express.static('public'));
-app.use(express.json()); // Add this line for parsing JSON requests
+// Use redirect middleware FIRST (before static files)
+app.use(redirectMiddleware);
 
 // Use security headers middleware
 app.use(securityHeaders);
 
-// Use redirect middleware
-app.use(redirectMiddleware);
+app.use(express.static('public'));
+app.use(express.json()); // Add this line for parsing JSON requests
 
 // Performance monitoring endpoint
 app.get('/performance', (req, res) => {
@@ -218,7 +344,7 @@ app.get('/debug-env', (req, res) => {
     };
     
     // Check system dependencies
-    const tools = ['magick', 'convert', 'dcraw'];
+    const tools = ['magick', 'convert', 'python3'];
     diagnostics.tools = {};
     
     for (const tool of tools) {
@@ -285,8 +411,8 @@ app.get('/debug-env', (req, res) => {
 const adminAuth = (req, res, next) => {
   const adminToken = req.headers['admin-token'] || req.query.adminToken;
   
-  // Simple token-based auth (you can change this to any secure token you want)
-  const validToken = 'admin123'; // Change this to a secure token
+  // Use environment variable for secure admin token
+  const validToken = process.env.ADMIN_TOKEN || `imgtojpg_${Date.now()}_${Math.random().toString(36)}`;
   
   if (adminToken === validToken) {
     next();
@@ -298,44 +424,115 @@ const adminAuth = (req, res, next) => {
   }
 };
 
-// Simple rate limiting for conversion endpoint
-const conversionRequests = new Map();
-const RATE_LIMIT_WINDOW = 60000; // 1 minute
-const RATE_LIMIT_MAX = 10; // Max 10 conversions per minute per IP
+// Note: Using express-rate-limit (convertRateLimit) instead of custom rate limiting
 
-const rateLimit = (req, res, next) => {
-  const clientIP = req.ip || req.connection.remoteAddress;
-  const now = Date.now();
-  
-  if (!conversionRequests.has(clientIP)) {
-    conversionRequests.set(clientIP, []);
+const upload = multer({ 
+  dest: 'uploads/',
+  limits: {
+    fileSize: 1024 * 1024 * 1024, // 1GB per file (for large RAW files)
+    files: 50, // Allow up to 10 files per request
+    fieldSize: 1024 * 1024 // 1MB for other form fields
   }
-  
-  const requests = conversionRequests.get(clientIP);
-  
-  // Remove old requests outside the window
-  const validRequests = requests.filter(time => now - time < RATE_LIMIT_WINDOW);
-  conversionRequests.set(clientIP, validRequests);
-  
-  if (validRequests.length >= RATE_LIMIT_MAX) {
-    return res.status(429).json({
-      success: false,
-      message: 'Too many conversion requests. Please wait a moment before trying again.',
-      retryAfter: Math.ceil(RATE_LIMIT_WINDOW / 1000)
-    });
+});
+
+// Subscription system routes
+app.use('/api/payments', paymentsRouter);
+app.use('/api', require('./routes/api'));
+
+// Log conversion after successful download - Simplified approach
+app.post('/log-conversion', optionalAuth, async (req, res) => {
+  try {
+    console.log('🔍 log-conversion endpoint called');
+    console.log('🔍 Request body:', req.body);
+    console.log('🔍 Request user:', req.user ? 'User found' : 'No user');
+    console.log('🔍 Auth header:', req.headers.authorization ? 'Present' : 'Missing');
+    
+    const { sessionId, format } = req.body;
+    
+    const clientIP = req.ip || req.connection.remoteAddress;
+    
+    // Determine conversion type based on page/URL (not file format)
+    const userAgent = req.headers['user-agent'] || '';
+    const referer = req.headers.referer || '';
+    
+    // If conversion comes from camera-raw-converter.html page, it's RAW conversion
+    const isRawConversion = referer.includes('/camera-raw-converter.html') || 
+                           userAgent.includes('camera-raw') ||
+                           req.body.sourcePage === 'camera-raw';
+    
+    const conversionType = isRawConversion ? 'raw' : 'normal';
+    
+    // Check if user is authenticated
+    if (req.user && req.user.id) {
+      // Authenticated user - log with user ID
+      const userId = req.user.id;
+      
+      // Calculate billing period for authenticated users
+      const now = new Date();
+      const billingPeriodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const billingPeriodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      
+      console.log('🔍 Logging authenticated conversion:', {
+        userId: userId,
+        format: format,
+        conversionType: conversionType,
+        sessionId: sessionId,
+        sourcePage: req.body.sourcePage
+      });
+      
+      // Log the conversion for authenticated user
+      await Database.logUsage(
+        userId, 
+        sessionId, 
+        1, // file count
+        0, // file size (not critical)
+        conversionType, 
+        clientIP, 
+        false, // not anonymous
+        billingPeriodStart, 
+        billingPeriodEnd
+      );
+      
+      console.log('✅ Conversion logged successfully for authenticated user:', userId);
+      res.json({ success: true, message: 'Conversion logged successfully for authenticated user' });
+      
+    } else {
+      // Anonymous user (including mobile users with failed auth) - log with IP
+      console.log('🔍 Logging anonymous conversion for IP:', clientIP);
+      
+      // Use weekly period for anonymous users (same as canIPConvert)
+      const now = new Date();
+      const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+      const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
+      
+      // Log the conversion for anonymous user (IP-based)
+      await Database.logUsage(
+        `anonymous_${clientIP}`, // Use IP as pseudo-user ID for anonymous users
+        sessionId, 
+        1, // file count
+        0, // file size (not critical)
+        conversionType, 
+        clientIP, 
+        true, // is anonymous
+        weekStart, 
+        weekEnd
+      );
+      
+      console.log('✅ Conversion logged successfully for anonymous user (IP):', clientIP);
+      res.json({ success: true, message: 'Conversion logged successfully for anonymous user' });
+    }
+    
+  } catch (error) {
+    console.error('❌ Error logging conversion:', error);
+    console.error('❌ Error details:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    res.status(500).json({ success: false, message: 'Failed to log conversion: ' + error.message });
   }
-  
-  // Add current request
-  validRequests.push(now);
-  conversionRequests.set(clientIP, validRequests);
-  
-  next();
-};
+});
 
-const upload = multer({ dest: 'uploads/' });
-
+// Enhanced /convert endpoint with subscription middleware
 // POST /convert
-app.post('/convert', rateLimit, upload.array('files'), async (req, res) => {
+app.post('/convert', convertRateLimit, upload.array('files', 50), optionalAuth, extractFileInfo, checkConversionQuota, async (req, res) => {
   const requestStartTime = Date.now();
   const initialMemory = getMemoryUsage();
   
@@ -363,14 +560,14 @@ app.post('/convert', rateLimit, upload.array('files'), async (req, res) => {
       });
     }
 
-    // Validate file sizes (100MB limit for RAW files)
-    const maxSize = 100 * 1024 * 1024; // 100MB
+    // Validate file sizes (1GB limit for RAW files)
+    const maxSize = 1024 * 1024 * 1024; // 1GB
     const oversizedFiles = req.files.filter(file => file.size > maxSize);
 
     if (oversizedFiles.length > 0) {
       return res.status(400).json({
         success: false,
-        message: `File(s) too large: ${oversizedFiles.map(f => f.originalname).join(', ')} (max 50MB)`
+        message: `File(s) too large: ${oversizedFiles.map(f => f.originalname).join(', ')} (max 1GB)`
       });
     }
 
@@ -463,18 +660,18 @@ app.post('/convert', rateLimit, upload.array('files'), async (req, res) => {
     }
 
     // Create and run worker (reliable RAW path with vips + dcraw)
-    const worker = new Worker(path.join(__dirname, 'jobs', 'convert_reliable.js'), {
+    const worker = new Worker(path.join(__dirname, 'jobs', 'convert_libraw.js'), {
       workerData: jobData
     });
 
-    // Set worker timeout (5 minutes)
+    // Set worker timeout (20 minutes for large RAW files)
     const workerTimeout = setTimeout(() => {
       worker.terminate();
       res.status(500).json({
         success: false,
         message: 'Conversion timed out. Please try again with smaller files.'
       });
-    }, 5 * 60 * 1000);
+    }, 20 * 60 * 1000);
 
     worker.on('message', (message) => {
       clearTimeout(workerTimeout);
@@ -500,6 +697,7 @@ app.post('/convert', rateLimit, upload.array('files'), async (req, res) => {
         res.json({
           success: true,
           message: 'Conversion completed successfully',
+          sessionId: sessionId,
           downloadLink: `/download/${sessionId}`,
           convertedFiles: message.convertedFiles,
           performance: {
@@ -577,7 +775,18 @@ app.get('/progress/:sessionId', (req, res) => {
     }
     const data = JSON.parse(fs.readFileSync(progressPath, 'utf8'));
     const percent = data.total > 0 ? Math.round((data.done / data.total) * 100) : 0;
-    res.json({ success: true, sessionId, total: data.total, done: data.done, percent, status: data.status });
+    
+    // Enhanced progress response with more details
+    res.json({ 
+      success: true, 
+      sessionId, 
+      total: data.total, 
+      done: data.done, 
+      percent: Math.max(0, Math.min(100, percent)), 
+      status: data.status || 'processing',
+      currentFile: data.currentFile || '',
+      updatedAt: data.updatedAt
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -668,26 +877,298 @@ app.post('/api/update-blog', adminAuth, (req, res) => {
       });
     }
 
-    // Read current blog.html
+    // Create individual blog post file with proper structure
+    const { title, excerpt, tags, content, featureImage, metaDescription, ogTitle, ogDescription,
+            slug: postSlug, author, readTime, badge, scheduledDate } = postData;
+
+    // Generate filename from slug or title
+    const slugBase = (postSlug || title.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '-')
+      .substring(0, 50)).replace(/^-+|-+$/g, '');
+    const filename = slugBase + '.html';
+
+    const blogPostPath = path.join(__dirname, 'public', `blog-${filename}`);
+    const isNewPost = !fs.existsSync(blogPostPath);
+
+    // Compute derived fields
+    const authorName = author || 'imgtojpg.org Team';
+    const wordCount = content.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+    const readTimeVal = readTime || Math.max(1, Math.ceil(wordCount / 200));
+    const badgeText = badge || '📝 BLOG';
+    const pubDate = scheduledDate || new Date().toISOString().split('T')[0];
+    const pubDateFormatted = new Date(pubDate + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    // Extract <div id="feature-image"> block — use it as hero image, strip from body content
+    // Match greedily to handle the full outer div (SVG has no nested </div>)
+    const featureBlockRe = /<div[^>]+id=["']feature-image["'][^>]*>([\s\S]*?)<\/div>\s*/i;
+    const featureBlockMatch = content.match(featureBlockRe);
+    let featureSVGBlock = '';
+    let contentClean = content;
+    if (featureBlockMatch) {
+      const inner = featureBlockMatch[1].trim();
+      // Make any SVG inside it responsive — strip fixed width/height/style attrs, add our own
+      featureSVGBlock = inner.replace(/<svg\b([^>]*)>/i, (m, attrs) => {
+        const cleaned = attrs
+          .replace(/\bwidth=["']\d+["']/gi, '')
+          .replace(/\bheight=["']\d+["']/gi, '')
+          .replace(/\bstyle=["'][^"']*["']/gi, '')
+          .trim();
+        return `<svg ${cleaned} style="width:100%;height:auto;display:block;">`;
+      });
+      contentClean = content.replace(featureBlockMatch[0], '').trim();
+    }
+
+    // Auto-pick first real HTTP image from content when thumbnail/featureImage not provided
+    const contentImgMatch = contentClean.match(/<img[^>]+src=["'](https?:\/\/[^"']+)["']/i);
+    const effectiveImage = featureImage || (contentImgMatch && contentImgMatch[1]) || '';
+    const effectiveOGImage = effectiveImage || 'https://imgtojpg.org/imgtojpg_logo_new.webp';
+
+    const blogMeta = JSON.stringify({ slug: slugBase, author: authorName, readTime: readTimeVal, badge: badgeText, thumbnail: effectiveImage, ogImage: effectiveOGImage, metaDescription: metaDescription || '', keywords: tags || '', scheduledDate: scheduledDate || '' });
+    
+    // Create proper blog post HTML structure
+    const blogPostHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>${title} - imgtojpg.org</title>
+    <!-- BLOG_META: ${blogMeta} -->
+
+    <meta name="description" content="${metaDescription || excerpt || ''}">
+    <meta name="keywords" content="${tags || 'image conversion, blog'}">
+    <meta name="author" content="${authorName}">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://imgtojpg.org/blog-${filename}">
+
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://imgtojpg.org/blog-${filename}">
+    <meta property="og:title" content="${ogTitle || title}">
+    <meta property="og:description" content="${ogDescription || metaDescription || excerpt || ''}">
+    <meta property="og:image" content="${effectiveOGImage}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="imgtojpg.org">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${ogTitle || title}">
+    <meta name="twitter:description" content="${ogDescription || metaDescription || excerpt || ''}">
+    <meta name="twitter:image" content="${effectiveOGImage}">
+
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Article","headline":"${title.replace(/"/g, '\\"')}","description":"${(metaDescription || excerpt || '').replace(/"/g, '\\"')}","author":{"@type":"Person","name":"${authorName}"},"publisher":{"@type":"Organization","name":"imgtojpg.org","url":"https://imgtojpg.org"},"datePublished":"${pubDate}","image":"${effectiveOGImage}","url":"https://imgtojpg.org/blog-${filename}"}
+    <\/script>
+
+    <link rel="icon" type="image/png" href="/imgtojpg_logo_new.png">
+    <link rel="apple-touch-icon" href="/imgtojpg_logo_new.png">
+    <link rel="manifest" href="/manifest.webmanifest">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/style.css">
+
+    <style>
+      .prose h2{font-size:1.5rem;font-weight:700;color:#111827;margin:2rem 0 .75rem}
+      .prose h3{font-size:1.25rem;font-weight:600;color:#1f2937;margin:1.5rem 0 .5rem}
+      .prose p{color:#374151;line-height:1.75;margin-bottom:1rem}
+      .prose ul{list-style:disc;padding-left:1.5rem;margin-bottom:1rem}
+      .prose ol{list-style:decimal;padding-left:1.5rem;margin-bottom:1rem}
+      .prose li{margin-bottom:.35rem;color:#374151}
+      .prose a{color:#2563eb;text-decoration:underline}
+      .prose strong{font-weight:700}
+      .prose img{border-radius:.75rem;max-width:100%;height:auto;margin:1.5rem 0}
+      .prose blockquote{border-left:4px solid #3b82f6;padding:.75rem 1.25rem;background:#eff6ff;border-radius:0 .75rem .75rem 0;font-style:italic;color:#1e40af;margin:1.5rem 0}
+      .prose table{width:100%;border-collapse:collapse;margin:1.5rem 0}
+      .prose th,.prose td{border:1px solid #e5e7eb;padding:.6rem .75rem;text-align:left}
+      .prose th{background:#f3f4f6;font-weight:600}
+      .stat-block{text-align:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:24px;margin:24px 0}
+      .stat-value{font-size:2.5rem;font-weight:700;color:#2563eb}
+      .stat-label{color:#6b7280;margin-top:4px;font-size:.95rem}
+      .tip-block{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin:16px 0}
+      .note-block{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:16px;margin:16px 0}
+      .takeaways-block{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:24px;margin:24px 0}
+      .takeaways-block h4{font-weight:700;color:#1e40af;margin-bottom:12px;font-size:1rem}
+      .takeaways-block ul{list-style:none;padding:0;margin:0}
+      .takeaways-block li{color:#1e40af;margin-bottom:8px}
+      .cta-block{background:linear-gradient(135deg,#1d4ed8,#2563eb);border-radius:16px;padding:32px;margin:32px 0;text-align:center;color:#fff}
+      .cta-block h3{font-size:1.5rem;font-weight:700;margin-bottom:8px;color:#fff}
+      .cta-block p{opacity:.9;margin-bottom:16px;color:#fff}
+      .cta-block a{background:#fff;color:#1d4ed8;padding:10px 24px;border-radius:8px;font-weight:600;text-decoration:none;display:inline-block}
+      @media(max-width:768px){.prose h2{font-size:1.25rem}.prose h3{font-size:1.1rem}.cta-block{padding:20px}.cta-block h3{font-size:1.2rem}}
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+            <a href="/" class="text-lg font-bold text-gray-900">imgtojpg.org</a>
+            <div class="hidden sm:flex items-center space-x-6 text-sm">
+                <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
+                <a href="/blog.html" class="text-gray-600 hover:text-gray-900">Blog</a>
+                <a href="/camera-raw-converter.html" class="text-gray-600 hover:text-gray-900">Camera Raw</a>
+                <a href="/pricing.html" class="text-gray-600 hover:text-gray-900">Pricing</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-4 py-10">
+        <article>
+            <div class="mb-6">
+                <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-4">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">${badgeText}</span>
+                    <time datetime="${pubDate}">${pubDateFormatted}</time>
+                    <span>·</span>
+                    <span>${readTimeVal} min read</span>
+                    <span>·</span>
+                    <span>By ${authorName}</span>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">${title}</h1>
+                ${excerpt ? `<p class="text-xl text-gray-600 mb-6 leading-relaxed">${excerpt}</p>` : ''}
+                ${featureSVGBlock
+                    ? `<div class="w-full rounded-xl mb-8 overflow-hidden">${featureSVGBlock}</div>`
+                    : effectiveImage
+                        ? `<img src="${effectiveImage}" alt="${title}" class="w-full rounded-xl mb-8" style="max-height:480px;object-fit:cover;">`
+                        : ''}
+            </div>
+            <div class="prose max-w-none">
+                ${contentClean}
+            </div>
+        </article>
+        <div class="mt-12 pt-8 border-t border-gray-200">
+            <a href="/blog.html" class="text-blue-600 hover:text-blue-800 font-medium text-sm">← Back to Blog</a>
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-white py-10 mt-16">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8 text-sm">
+                <div>
+                    <p class="font-bold text-lg mb-3">imgtojpg.org</p>
+                    <p class="text-gray-400">Professional image conversion tools.</p>
+                </div>
+                <div>
+                    <p class="font-semibold mb-3">Tools</p>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="/heic-to-jpg.html" class="hover:text-white">HEIC to JPG</a></li>
+                        <li><a href="/png-to-jpg.html" class="hover:text-white">PNG to JPG</a></li>
+                        <li><a href="/camera-raw-converter.html" class="hover:text-white">Camera RAW</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <p class="font-semibold mb-3">Resources</p>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="/blog.html" class="hover:text-white">Blog</a></li>
+                        <li><a href="/help-center.html" class="hover:text-white">Help Center</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <p class="font-semibold mb-3">Legal</p>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="/privacy-subscription.html" class="hover:text-white">Privacy</a></li>
+                        <li><a href="/terms-subscription.html" class="hover:text-white">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-6 text-center text-sm text-gray-500">
+                <p>&copy; ${new Date().getFullYear()} imgtojpg.org. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>`;
+
+    // Write the individual blog post file
+    fs.writeFileSync(blogPostPath, blogPostHTML);
+
+    // Update blog.html — only insert a new card for new posts (not republishes)
     const blogPath = path.join(__dirname, 'public', 'blog.html');
     let blogContent = fs.readFileSync(blogPath, 'utf8');
+
+    if (!isNewPost) {
+      // Republish: always update the card thumbnail in blog.html
+      const newThumbSrc = effectiveImage
+        ? effectiveImage
+        : featureSVGBlock
+            ? `data:image/svg+xml;base64,${Buffer.from(featureSVGBlock).toString('base64')}`
+            : '/imgtojpg_logo_new.webp';
+      const newThumbClass = featureSVGBlock && !effectiveImage
+        ? 'w-full h-48 object-contain rounded-lg mb-4 bg-gray-900'
+        : 'w-full h-48 object-cover rounded-lg mb-4';
+      const newThumbTag = `<img src="${newThumbSrc}" alt="${title}" class="${newThumbClass}">`;
+
+      const cardRef = `href="/blog-${filename}"`;
+      const cardPos = blogContent.indexOf(cardRef);
+      if (cardPos !== -1) {
+        const slice = blogContent.substring(cardPos, cardPos + 2000);
+        const h3Pos = slice.indexOf('<h3 ');
+        if (h3Pos !== -1) {
+          const beforeH3 = slice.substring(0, h3Pos);
+          const imgPos = beforeH3.indexOf('<img ');
+          if (imgPos !== -1) {
+            // Replace the whole existing img tag
+            const absImgStart = cardPos + imgPos;
+            const imgEnd = blogContent.indexOf('>', absImgStart) + 1;
+            blogContent = blogContent.substring(0, absImgStart) + newThumbTag + blogContent.substring(imgEnd);
+          } else {
+            // No img yet — inject before the h3
+            const insertAt = cardPos + h3Pos;
+            blogContent = blogContent.substring(0, insertAt) + newThumbTag + '\n            ' + blogContent.substring(insertAt);
+          }
+          fs.writeFileSync(blogPath, blogContent);
+        }
+      }
+      return res.json({ success: true, message: 'Blog post updated', postUrl: `/blog-${filename}` });
+    }
     
-    // Find the position to insert new post (after the navigation header, before existing content)
-    const navEndIndex = blogContent.indexOf('<!-- BLOG POSTS START - New posts will be inserted here -->');
+    // Build card thumbnail — prefer HTTP image URL; fall back to SVG as base64 img, then local logo
+    const cardThumbSrc = effectiveImage
+      || (featureSVGBlock ? `data:image/svg+xml;base64,${Buffer.from(featureSVGBlock).toString('base64')}` : '/imgtojpg_logo_new.webp');
+    const cardThumbClass = featureSVGBlock && !effectiveImage
+      ? 'w-full h-48 object-contain rounded-lg mb-4 bg-gray-900'
+      : 'w-full h-48 object-cover rounded-lg mb-4';
+    const cardThumbHTML = `<img src="${cardThumbSrc}" alt="${title}" class="${cardThumbClass}">`;
+
+    // Create a blog post card for the main blog page in the proper card format
+    const blogPostCard = `
+          <a href="/blog-${filename}" class="adobe-card p-6 block hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="flex items-center text-sm text-gray-500 mb-4">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-3">
+                ${badgeText}
+              </span>
+              <time>${pubDateFormatted}</time>
+            </div>
+            ${cardThumbHTML}
+            <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">${title}</h3>
+            ${excerpt ? `<p class="text-gray-600 mb-3">${excerpt}</p>` : ''}
+            <div class="flex flex-wrap gap-1 mb-4">
+              ${tags ? tags.split(',').map(tag => `<span class="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">${tag.trim()}</span>`).join('') : ''}
+            </div>
+            <span class="inline-block text-blue-600 font-medium">Read More →</span>
+          </a>`;
+    
+    // Find the position to insert new post in the Featured section
+    const featuredSectionStart = blogContent.indexOf('<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">');
     let newBlogContent;
     
+    if (featuredSectionStart === -1) {
+      // Fallback: insert after BLOG POSTS START marker
+      const navEndIndex = blogContent.indexOf('<!-- BLOG POSTS START - New posts will be inserted here -->');
     if (navEndIndex === -1) {
-      // Fallback: insert after body tag if nav marker not found
+        // Last resort: insert after body tag
       const bodyTagIndex = blogContent.indexOf('<body>') + 7;
       const beforeBody = blogContent.substring(0, bodyTagIndex);
       const afterBody = blogContent.substring(bodyTagIndex);
-      newBlogContent = beforeBody + '\n\n  ' + postHTML + '\n\n  ' + afterBody;
+        newBlogContent = beforeBody + '\n\n  ' + blogPostCard + '\n\n  ' + afterBody;
     } else {
-      // Insert after the marker comment, so new posts appear at the top
       const markerEndIndex = navEndIndex + '<!-- BLOG POSTS START - New posts will be inserted here -->'.length;
       const beforeMarker = blogContent.substring(0, markerEndIndex);
       const afterMarker = blogContent.substring(markerEndIndex);
-      newBlogContent = beforeMarker + '\n\n  ' + postHTML + '\n\n  ' + afterMarker;
+        newBlogContent = beforeMarker + '\n\n  ' + blogPostCard + '\n\n  ' + afterMarker;
+      }
+    } else {
+      // Insert at the beginning of the Featured section grid
+      const gridStart = featuredSectionStart + '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">'.length;
+      const beforeGrid = blogContent.substring(0, gridStart);
+      const afterGrid = blogContent.substring(gridStart);
+      newBlogContent = beforeGrid + '\n          ' + blogPostCard + '\n          ' + afterGrid;
     }
     
     // Write updated blog.html
@@ -695,14 +1176,154 @@ app.post('/api/update-blog', adminAuth, (req, res) => {
     
     res.json({
       success: true,
-      message: 'Blog updated successfully'
+      message: 'Blog post created successfully',
+      postUrl: `/blog-${filename}`
     });
     
   } catch (error) {
-    console.error('Error updating blog:', error);
+    console.error('Error creating blog post:', error);
     res.status(500).json({
       success: false,
-      message: 'Error updating blog: ' + error.message
+      message: 'Error creating blog post: ' + error.message
+    });
+  }
+});
+
+// List all published blog posts
+app.get('/api/blog-posts', adminAuth, (req, res) => {
+  try {
+    const publicDir = path.join(__dirname, 'public');
+    const excluded = new Set(['blog-manager.html','blog-login.html','blog-dashboard.html',
+      'blog-post.html','blog-privacy-security.html','blog.html']);
+    const files = fs.readdirSync(publicDir)
+      .filter(f => f.startsWith('blog-') && f.endsWith('.html') && !excluded.has(f));
+    const posts = files.map(filename => {
+      try {
+        const raw = fs.readFileSync(path.join(publicDir, filename), 'utf8');
+        const metaMatch = raw.match(/<!-- BLOG_META: ({.*?}) -->/);
+        const meta = metaMatch ? JSON.parse(metaMatch[1]) : {};
+        const titleMatch = raw.match(/<title>([^<]+)<\/title>/);
+        const descMatch = raw.match(/<meta name="description" content="([^"]*)"/);
+        const imageMatch = raw.match(/<meta property="og:image" content="([^"]*)"/);
+        const authorMatch = raw.match(/<meta name="author" content="([^"]*)"/);
+        const dateMatch = raw.match(/<time datetime="([^"]+)"/);
+        const contentMatch = raw.match(/<div class="prose max-w-none">([\s\S]*?)<\/div>\s*<\/article>/);
+        const proseContent = contentMatch ? contentMatch[1].trim() : '';
+
+        // Extract the hero SVG from the rendered article and rebuild the feature-image block
+        // so round-trip editing preserves it
+        const heroSVGMatch = raw.match(/<div class="w-full rounded-xl mb-8 overflow-hidden">([\s\S]*?)<\/div>/);
+        const heroSVG = heroSVGMatch ? heroSVGMatch[1].trim() : '';
+        const fullContent = heroSVG
+          ? `<div id="feature-image" style="display:none;">\n${heroSVG}\n</div>\n\n${proseContent}`
+          : proseContent;
+
+        return {
+          filename,
+          slug: meta.slug || filename.replace(/^blog-/, '').replace(/\.html$/, ''),
+          title: (titleMatch ? titleMatch[1] : filename).replace(/ - imgtojpg\.org$/, ''),
+          description: descMatch ? descMatch[1] : '',
+          image: meta.thumbnail || (imageMatch ? imageMatch[1] : ''),
+          author: meta.author || (authorMatch ? authorMatch[1] : ''),
+          readTime: meta.readTime || '',
+          badge: meta.badge || '📝 BLOG',
+          date: dateMatch ? dateMatch[1] : '',
+          keywords: meta.keywords || '',
+          metaDescription: meta.metaDescription || (descMatch ? descMatch[1] : ''),
+          ogImage: meta.ogImage || (imageMatch ? imageMatch[1] : ''),
+          featureSVG: heroSVG,
+          content: fullContent,
+          status: 'published'
+        };
+      } catch (e) { return null; }
+    }).filter(Boolean);
+    res.json({ success: true, posts });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Delete a blog post
+app.delete('/api/delete-blog', adminAuth, (req, res) => {
+  try {
+    const { filename } = req.body;
+    if (!filename || !/^blog-[a-z0-9-]+\.html$/.test(filename)) {
+      return res.status(400).json({ success: false, message: 'Invalid filename' });
+    }
+    const filePath = path.join(__dirname, 'public', filename);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    // Remove the card from blog.html
+    const blogPath = path.join(__dirname, 'public', 'blog.html');
+    let blogContent = fs.readFileSync(blogPath, 'utf8');
+    const cardRef = `href="/${filename}"`;
+    const cardPos = blogContent.indexOf(cardRef);
+    if (cardPos !== -1) {
+      // Find the opening <a of this card (search backwards from cardRef)
+      const aStart = blogContent.lastIndexOf('<a ', cardPos);
+      // Find the closing </a>
+      const aEnd = blogContent.indexOf('</a>', cardPos) + 4;
+      if (aStart !== -1 && aEnd > 4) {
+        blogContent = blogContent.substring(0, aStart).trimEnd() + '\n' + blogContent.substring(aEnd).replace(/^\s*\n/, '');
+        fs.writeFileSync(blogPath, blogContent);
+      }
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// File cleanup API endpoints
+app.get('/api/cleanup/stats', async (req, res) => {
+  try {
+    const stats = await fileCleanupManager.getStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error getting cleanup stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get cleanup statistics'
+    });
+  }
+});
+
+app.post('/api/cleanup/manual', async (req, res) => {
+  try {
+    await fileCleanupManager.performCleanup();
+    const stats = await fileCleanupManager.getStats();
+    res.json({
+      success: true,
+      message: 'Manual cleanup completed',
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error during manual cleanup:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to perform manual cleanup'
+    });
+  }
+});
+
+app.post('/api/cleanup/session/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const result = await fileCleanupManager.cleanupSession(sessionId);
+    res.json({
+      success: true,
+      message: `Session ${sessionId} cleaned up`,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error cleaning up session:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to clean up session'
     });
   }
 });
@@ -809,6 +1430,7 @@ setInterval(() => {
   });
 }, CLEANUP_INTERVAL);
 
+
 // 404 Error Handler - Must be placed after all other routes
 app.use((req, res) => {
   // Log 404 errors for debugging
@@ -822,4 +1444,9 @@ app.use((req, res) => {
 
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
+  console.log(`📁 Uploads directory: ${path.join(__dirname, 'uploads')}`);
+  console.log(`📁 Converted directory: ${path.join(__dirname, 'public', 'converted')}`);
+  
+  // Start file cleanup service
+  fileCleanupManager.start();
 });
