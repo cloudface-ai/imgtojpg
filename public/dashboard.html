@@ -374,6 +374,7 @@
                 auth.onAuthStateChanged(async (user) => {
                     currentUser = user;
                     if (user) {
+                        await verifyPendingPayment();
                         await loadDashboard();
                     } else {
                         showAuthRequired();
@@ -382,6 +383,52 @@
             } catch (error) {
                 console.error('Firebase initialization failed:', error);
                 showAuthRequired();
+            }
+        }
+
+        // After Razorpay payment-link redirect, verify + activate plan immediately
+        async function verifyPendingPayment() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const paymentFlag = params.get('payment');
+                const paymentId = params.get('razorpay_payment_id');
+                const linkStatus = params.get('razorpay_payment_link_status');
+
+                if (!paymentId) {
+                    return;
+                }
+                if (paymentFlag !== 'success' && linkStatus !== 'paid') {
+                    return;
+                }
+
+                console.log('💳 Verifying Razorpay payment:', paymentId);
+                const idToken = await currentUser.getIdToken();
+                const response = await fetch('/api/payments/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${idToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        paymentId,
+                        paymentLinkId: params.get('razorpay_payment_link_id'),
+                        paymentLinkReferenceId: params.get('razorpay_payment_link_reference_id'),
+                        paymentLinkStatus: linkStatus,
+                        signature: params.get('razorpay_signature')
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    console.log('✅ Payment verified, plan:', data.currentPlan);
+                } else {
+                    console.warn('⚠️ Payment verify failed:', data.message);
+                }
+
+                // Clean callback params so refresh doesn't re-post
+                window.history.replaceState({}, document.title, '/dashboard.html');
+            } catch (error) {
+                console.error('❌ Payment verification error:', error);
             }
         }
 

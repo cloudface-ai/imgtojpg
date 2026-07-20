@@ -231,30 +231,47 @@ class RazorpayService {
   }
 
   // Handle successful payment link payment (one-time subscription purchase)
-  static async handlePaymentLinkPayment(payment) {
+  static async handlePaymentLinkPayment(payment, authenticatedUser = null) {
     try {
       console.log('🔍 Processing payment link payment:', payment.id);
       console.log('🔍 Payment notes:', payment.notes);
       
-      let userId = payment.notes.userId || payment.notes.firebaseUid;
-      const planType = payment.notes.planType;
-      const userEmail = payment.notes.email || payment.customer_details?.email;
+      const notes = payment.notes || {};
+      let userId = notes.userId || notes.firebaseUid;
+      const planType = notes.planType;
+      const userEmail = notes.email || payment.email || payment.customer_details?.email;
 
       if (!planType) {
         throw new Error('Missing planType in payment notes');
       }
 
-      // If userId is missing or invalid, try to find user by email
-      if (!userId && userEmail) {
-        console.log('⚠️ Missing userId, searching by email:', userEmail);
-        try {
+      // Prefer authenticated user when verifying from dashboard callback
+      if (authenticatedUser?.id) {
+        userId = authenticatedUser.id;
+        console.log('✅ Using authenticated user for activation:', userId);
+      }
+
+      // Resolve Firestore user id from notes / email / firebase uid
+      if (userId && !authenticatedUser?.id) {
+        let user = await Database.getUserById(userId);
+        if (!user) {
+          user = await Database.getUserByFirebaseUid(userId);
+          if (user) {
+            userId = user.id;
+            console.log('✅ Resolved Firestore user from firebase uid:', userId);
+          }
+        }
+      }
+
+      if (!authenticatedUser?.id) {
+        const existingUser = userId ? await Database.getUserById(userId) : null;
+        if (!existingUser && userEmail) {
+          console.log('⚠️ Looking up user by email:', userEmail);
           const user = await Database.getUserByEmail(userEmail);
           if (user) {
             userId = user.id;
             console.log('✅ Found user by email:', userId);
           }
-        } catch (emailSearchError) {
-          console.log('⚠️ Could not find user by email:', emailSearchError.message);
         }
       }
 
@@ -262,18 +279,29 @@ class RazorpayService {
         throw new Error('Could not determine user ID from payment notes or email');
       }
 
+      // Idempotent: if this payment was already applied for this user+plan, return current sub
+      const existing = await Database.getActiveSubscription(userId);
+      if (
+        existing &&
+        existing.plan_type === planType &&
+        existing.provider_subscription_id === `plink_${payment.id}`
+      ) {
+        console.log('ℹ️ Subscription already activated for this payment:', payment.id);
+        return existing;
+      }
+
       // Calculate subscription period (monthly from payment date)
       const currentStart = new Date();
       const currentEnd = new Date();
       currentEnd.setMonth(currentEnd.getMonth() + 1);
 
-      // Create subscription record in database
+      // Create/update subscription record in Firestore (overwrites plan for upgrades)
       const dbSubscription = await Database.createSubscription(
         userId,
         planType,
         'razorpay',
-        `plink_${payment.id}`, // Use payment link ID as subscription ID
-        payment.amount / 100, // Convert paise to rupees
+        `plink_${payment.id}`,
+        payment.amount / 100,
         payment.currency,
         currentStart,
         currentEnd
@@ -289,7 +317,7 @@ class RazorpayService {
       // Log payment transaction
       await Database.logPayment(
         userId,
-        dbSubscription.id,
+        dbSubscription?.id || userId,
         'subscription',
         'razorpay',
         payment.id,
@@ -303,13 +331,82 @@ class RazorpayService {
         paymentId: payment.id,
         userId: userId,
         planType: planType,
-        subscriptionId: dbSubscription.id
+        subscriptionId: dbSubscription?.id
       });
       return dbSubscription;
     } catch (error) {
       console.error('❌ Payment link payment processing failed:', error);
       throw error;
     }
+  }
+
+  // Verify payment-link callback from dashboard and activate plan
+  static async verifyAndActivatePaymentLink({
+    paymentId,
+    paymentLinkId,
+    paymentLinkReferenceId,
+    paymentLinkStatus,
+    signature,
+    authenticatedUser
+  }) {
+    if (!paymentId) {
+      throw new Error('Payment ID is required');
+    }
+
+    // Optional callback signature check (Razorpay payment link redirect)
+    if (signature && paymentLinkId && paymentLinkStatus) {
+      const payload = [
+        paymentId,
+        paymentLinkId,
+        paymentLinkReferenceId || '',
+        paymentLinkStatus
+      ].join('|');
+      const expectedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '')
+        .update(payload)
+        .digest('hex');
+
+      if (expectedSignature !== signature) {
+        console.warn('⚠️ Payment link signature mismatch — falling back to Razorpay API fetch');
+      }
+    }
+
+    if (paymentLinkStatus && paymentLinkStatus !== 'paid') {
+      throw new Error(`Payment link status is ${paymentLinkStatus}, expected paid`);
+    }
+
+    const payment = await this.getPayment(paymentId);
+    const status = (payment.status || '').toLowerCase();
+    if (!['captured', 'authorized', 'paid'].includes(status)) {
+      throw new Error(`Payment not successful (status: ${payment.status})`);
+    }
+
+    // Ensure notes have planType; if missing, cannot activate safely
+    if (!payment.notes?.planType && !authenticatedUser) {
+      throw new Error('Payment is missing plan information');
+    }
+
+    // If notes missing planType but we can't invent one — require notes
+    if (!payment.notes?.planType) {
+      throw new Error('Payment notes missing planType — cannot activate subscription');
+    }
+
+    // Security: payment must belong to this user (by id, firebase uid, or email)
+    const notes = payment.notes || {};
+    const noteUserIds = [notes.userId, notes.firebaseUid].filter(Boolean);
+    const noteEmail = (notes.email || payment.email || '').toLowerCase();
+    const authEmail = (authenticatedUser?.email || '').toLowerCase();
+    const authIds = [authenticatedUser?.id, authenticatedUser?.firebase_uid].filter(Boolean);
+
+    const userMatches =
+      noteUserIds.some((id) => authIds.includes(id)) ||
+      (noteEmail && authEmail && noteEmail === authEmail);
+
+    if (authenticatedUser && !userMatches) {
+      throw new Error('Payment does not belong to the authenticated user');
+    }
+
+    return await this.handlePaymentLinkPayment(payment, authenticatedUser);
   }
 
   // Handle successful subscription payment
@@ -533,8 +630,8 @@ class RazorpayService {
         callback_method: 'get',
         notes: {
           userId: user.id,
-          firebaseUid: user.id, // Store Firebase UID as well
-          email: user.email,    // Store email for fallback lookup
+          firebaseUid: user.firebase_uid || user.id,
+          email: user.email,
           planType: planType,
           app_name: 'HEIC to JPG Converter',
           service: 'Image Conversion Service',

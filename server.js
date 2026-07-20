@@ -306,7 +306,14 @@ app.use(redirectMiddleware);
 app.use(securityHeaders);
 
 app.use(express.static('public'));
-app.use(express.json()); // Add this line for parsing JSON requests
+// Keep Razorpay webhook body as raw Buffer for signature verification;
+// parse JSON for all other routes.
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/payments/webhooks/razorpay') {
+    return express.raw({ type: 'application/json' })(req, res, next);
+  }
+  return express.json()(req, res, next);
+});
 
 // Performance monitoring endpoint
 app.get('/performance', (req, res) => {

@@ -42,13 +42,13 @@ router.post('/checkout', authenticateUser, async (req, res) => {
       });
     }
 
-    // Check if user already has an active subscription
+    // Allow upgrades/downgrades; only block buying the same active plan again
     const existingSubscription = await Database.getActiveSubscription(req.user.id);
-    if (existingSubscription) {
+    if (existingSubscription && existingSubscription.plan_type === planType) {
       return res.status(400).json({
         success: false,
-        error: 'SUBSCRIPTION_EXISTS',
-        message: 'You already have an active subscription',
+        error: 'SAME_PLAN',
+        message: `You are already on the ${planType} plan`,
         currentPlan: existingSubscription.plan_type
       });
     }
@@ -109,6 +109,51 @@ router.post('/payment-link', authenticateUser, async (req, res) => {
       success: false,
       error: 'PAYMENT_LINK_FAILED',
       message: 'Failed to create payment link'
+    });
+  }
+});
+
+// Verify Razorpay payment link callback and activate subscription
+// Used when user returns to dashboard after paying (webhook may be delayed/missing)
+router.post('/verify', authenticateUser, async (req, res) => {
+  try {
+    const {
+      paymentId,
+      paymentLinkId,
+      paymentLinkReferenceId,
+      paymentLinkStatus,
+      signature
+    } = req.body;
+
+    if (!paymentId) {
+      return res.status(400).json({
+        success: false,
+        error: 'MISSING_PAYMENT_ID',
+        message: 'Payment ID is required'
+      });
+    }
+
+    const subscription = await RazorpayService.verifyAndActivatePaymentLink({
+      paymentId,
+      paymentLinkId,
+      paymentLinkReferenceId,
+      paymentLinkStatus,
+      signature,
+      authenticatedUser: req.user
+    });
+
+    res.json({
+      success: true,
+      message: 'Payment verified and subscription activated',
+      subscription,
+      currentPlan: subscription?.plan_type || req.user.current_plan
+    });
+  } catch (error) {
+    console.error('❌ Payment verification failed:', error);
+    res.status(400).json({
+      success: false,
+      error: 'PAYMENT_VERIFY_FAILED',
+      message: error.message || 'Failed to verify payment'
     });
   }
 });
@@ -260,10 +305,11 @@ router.get('/history', authenticateUser, async (req, res) => {
 });
 
 // Razorpay webhook endpoint
-router.post('/webhooks/razorpay', express.raw({ type: 'application/json' }), async (req, res) => {
+router.post('/webhooks/razorpay', async (req, res) => {
   try {
     const signature = req.headers['x-razorpay-signature'];
-    const body = req.body;
+    // Body is a raw Buffer from server middleware (required for signature check)
+    const body = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body || {}));
 
     console.log('🔍 Razorpay webhook received');
     console.log('🔍 Signature present:', !!signature);
@@ -281,7 +327,7 @@ router.post('/webhooks/razorpay', express.raw({ type: 'application/json' }), asy
       return res.status(400).json({ error: 'Invalid signature' });
     }
 
-    const eventData = JSON.parse(body);
+    const eventData = JSON.parse(body.toString('utf8'));
     console.log('✅ Razorpay webhook verified:', eventData.event);
     console.log('🔍 Event payload:', JSON.stringify(eventData.payload, null, 2));
 
@@ -303,14 +349,16 @@ router.post('/webhooks/razorpay', express.raw({ type: 'application/json' }), asy
         break;
         
       case 'payment.captured':
+      case 'payment_link.paid':
         console.log('✅ Processing successful payment...');
-        // Check if this is a payment link payment (subscription purchase)
-        const payment = eventData.payload.payment.entity;
-        if (payment.notes && payment.notes.planType) {
-          console.log('🔍 This appears to be a payment link subscription purchase');
-          await RazorpayService.handlePaymentLinkPayment(payment);
-        } else {
-          console.log('ℹ️ One-time payment, no subscription action needed');
+        {
+          const paymentEntity = eventData.payload.payment?.entity;
+          if (paymentEntity && paymentEntity.notes && paymentEntity.notes.planType) {
+            console.log('🔍 Activating subscription from payment link purchase');
+            await RazorpayService.handlePaymentLinkPayment(paymentEntity);
+          } else {
+            console.log('ℹ️ Payment captured without planType notes — no subscription action');
+          }
         }
         break;
         
