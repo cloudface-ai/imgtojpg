@@ -672,7 +672,8 @@
             
             // Remove "Current Plan" from all buttons
             document.querySelectorAll('.pricing-card button').forEach(button => {
-                button.textContent = button.textContent.replace('Current Plan', '').trim();
+                const btn = button.querySelector('.btn-text');
+                if (btn) btn.textContent = btn.textContent.replace('Current Plan', '').trim();
                 button.className = button.className.replace('bg-gray-100 text-gray-700', 'bg-blue-600 text-white');
                 button.className = button.className.replace('hover:bg-gray-200', 'hover:bg-blue-700');
             });
