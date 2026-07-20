@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Repair | ImgToJPG Admin</title>
+  <meta name="robots" content="noindex,nofollow">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <div class="max-w-xl mx-auto py-12 px-4">
+    <h1 class="text-2xl font-semibold text-slate-900 mb-2">Payment Repair</h1>
+    <p class="text-slate-600 mb-8 text-sm">
+      Use when Razorpay shows <strong>captured</strong> but the user is still Free.
+      Paste the Razorpay payment id (<code>pay_...</code>) and your admin token.
+    </p>
+
+    <form id="repair-form" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Admin Token</label>
+        <input id="admin-token" type="password" required
+          class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+          placeholder="ADMIN_TOKEN from server env">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Razorpay Payment ID</label>
+        <input id="payment-id" type="text" required
+          class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+          placeholder="pay_TFjIqsMEsNJxFa">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">User email (optional)</label>
+        <input id="email" type="email"
+          class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+          placeholder="user@example.com">
+      </div>
+      <div class="flex gap-3">
+        <button type="button" id="status-btn"
+          class="flex-1 border border-slate-300 text-slate-700 py-2 rounded-lg text-sm font-medium hover:bg-slate-50">
+          Check status
+        </button>
+        <button type="submit"
+          class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+          Repair &amp; activate
+        </button>
+      </div>
+    </form>
+
+    <pre id="result" class="mt-6 bg-slate-900 text-green-300 text-xs p-4 rounded-xl overflow-auto hidden whitespace-pre-wrap"></pre>
+  </div>
+
+  <script>
+    const resultEl = document.getElementById('result');
+
+    function showResult(data) {
+      resultEl.classList.remove('hidden');
+      resultEl.textContent = JSON.stringify(data, null, 2);
+    }
+
+    document.getElementById('status-btn').addEventListener('click', async () => {
+      const token = document.getElementById('admin-token').value.trim();
+      const paymentId = document.getElementById('payment-id').value.trim();
+      if (!token || !paymentId) return alert('Admin token and payment id required');
+      try {
+        const res = await fetch('/api/payments/admin/payment-status/' + encodeURIComponent(paymentId), {
+          headers: { 'admin-token': token }
+        });
+        showResult(await res.json());
+      } catch (e) {
+        showResult({ error: e.message });
+      }
+    });
+
+    document.getElementById('repair-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const token = document.getElementById('admin-token').value.trim();
+      const paymentId = document.getElementById('payment-id').value.trim();
+      const email = document.getElementById('email').value.trim();
+      if (!token || !paymentId) return alert('Admin token and payment id required');
+      try {
+        const res = await fetch('/api/payments/admin/repair-payment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'admin-token': token
+          },
+          body: JSON.stringify({ paymentId, email: email || undefined })
+        });
+        showResult(await res.json());
+      } catch (err) {
+        showResult({ error: err.message });
+      }
+    });
+  </script>
+</body>
+</html>

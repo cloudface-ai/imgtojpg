@@ -599,6 +599,52 @@ class FirestoreDatabase {
       throw error;
     }
   }
+
+  // Always-on payment event log (survives activation failures)
+  static async savePaymentEvent(event) {
+    try {
+      const docId = event.provider_transaction_id;
+      const payload = {
+        ...event,
+        updated_at: admin.firestore.FieldValue.serverTimestamp()
+      };
+
+      if (!docId) {
+        const autoRef = db.collection('payment_events').doc();
+        await autoRef.set({
+          ...payload,
+          created_at: admin.firestore.FieldValue.serverTimestamp()
+        });
+        return { id: autoRef.id, ...payload };
+      }
+
+      const ref = db.collection('payment_events').doc(docId);
+      const existing = await ref.get();
+      if (existing.exists) {
+        await ref.set(payload, { merge: true });
+      } else {
+        await ref.set({
+          ...payload,
+          created_at: admin.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      return { id: ref.id, ...payload };
+    } catch (error) {
+      console.error('Error saving payment event:', error);
+      // Never block payment flow on logging failure
+      return null;
+    }
+  }
+
+  static async getPaymentEvent(providerTransactionId) {
+    try {
+      const doc = await db.collection('payment_events').doc(providerTransactionId).get();
+      return doc.exists ? { id: doc.id, ...doc.data() } : null;
+    } catch (error) {
+      console.error('Error getting payment event:', error);
+      return null;
+    }
+  }
 }
 
 module.exports = FirestoreDatabase;

@@ -232,16 +232,36 @@ class RazorpayService {
 
   // Handle successful payment link payment (one-time subscription purchase)
   static async handlePaymentLinkPayment(payment, authenticatedUser = null) {
+    const notes = payment.notes || {};
+    const planType = notes.planType;
+    const userEmail = notes.email || payment.email || payment.customer_details?.email;
+
+    // Persist Razorpay payment status immediately (even if activation fails later)
+    await Database.savePaymentEvent({
+      provider: 'razorpay',
+      provider_transaction_id: payment.id,
+      status: payment.status || 'unknown',
+      amount: payment.amount ? payment.amount / 100 : null,
+      currency: payment.currency || null,
+      method: payment.method || null,
+      plan_type: planType || null,
+      email: userEmail || null,
+      notes: notes,
+      activation_status: 'pending'
+    });
+
     try {
       console.log('🔍 Processing payment link payment:', payment.id);
       console.log('🔍 Payment notes:', payment.notes);
       
-      const notes = payment.notes || {};
       let userId = notes.userId || notes.firebaseUid;
-      const planType = notes.planType;
-      const userEmail = notes.email || payment.email || payment.customer_details?.email;
 
       if (!planType) {
+        await Database.savePaymentEvent({
+          provider_transaction_id: payment.id,
+          activation_status: 'failed',
+          activation_error: 'Missing planType in payment notes'
+        });
         throw new Error('Missing planType in payment notes');
       }
 
@@ -276,6 +296,11 @@ class RazorpayService {
       }
 
       if (!userId) {
+        await Database.savePaymentEvent({
+          provider_transaction_id: payment.id,
+          activation_status: 'failed',
+          activation_error: 'Could not determine user ID'
+        });
         throw new Error('Could not determine user ID from payment notes or email');
       }
 
@@ -287,6 +312,12 @@ class RazorpayService {
         existing.provider_subscription_id === `plink_${payment.id}`
       ) {
         console.log('ℹ️ Subscription already activated for this payment:', payment.id);
+        await Database.savePaymentEvent({
+          provider_transaction_id: payment.id,
+          user_id: userId,
+          activation_status: 'already_active',
+          plan_type: planType
+        });
         return existing;
       }
 
@@ -327,6 +358,14 @@ class RazorpayService {
         payment.method
       );
 
+      await Database.savePaymentEvent({
+        provider_transaction_id: payment.id,
+        user_id: userId,
+        plan_type: planType,
+        activation_status: 'activated',
+        status: payment.status || 'captured'
+      });
+
       console.log('✅ Razorpay payment link payment processed successfully:', {
         paymentId: payment.id,
         userId: userId,
@@ -336,6 +375,11 @@ class RazorpayService {
       return dbSubscription;
     } catch (error) {
       console.error('❌ Payment link payment processing failed:', error);
+      await Database.savePaymentEvent({
+        provider_transaction_id: payment.id,
+        activation_status: 'failed',
+        activation_error: error.message
+      });
       throw error;
     }
   }

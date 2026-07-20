@@ -457,4 +457,123 @@ router.post('/admin/refund', requireAdmin, async (req, res) => {
   }
 });
 
+// Admin auth via Firebase admin OR ADMIN_TOKEN header (for ops repair)
+function requireAdminOrToken(req, res, next) {
+  const adminToken = req.headers['admin-token'] || req.query.adminToken;
+  const validToken = process.env.ADMIN_TOKEN;
+  if (validToken && adminToken && adminToken === validToken) {
+    return next();
+  }
+  if (req.user) {
+    return requireAdmin(req, res, next);
+  }
+  return res.status(401).json({
+    success: false,
+    error: 'UNAUTHORIZED',
+    message: 'Valid admin-token header required'
+  });
+}
+
+// Repair: activate subscription from an existing Razorpay payment id
+router.post('/admin/repair-payment', requireAdminOrToken, async (req, res) => {
+  try {
+    const { paymentId, email } = req.body;
+
+    if (!paymentId) {
+      return res.status(400).json({
+        success: false,
+        error: 'MISSING_PAYMENT_ID',
+        message: 'paymentId is required (e.g. pay_xxxxx)'
+      });
+    }
+
+    const payment = await RazorpayService.getPayment(paymentId);
+    const status = (payment.status || '').toLowerCase();
+
+    if (!['captured', 'authorized', 'paid'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'PAYMENT_NOT_SUCCESSFUL',
+        message: `Payment status is ${payment.status}, expected captured`,
+        payment: { id: payment.id, status: payment.status, amount: payment.amount }
+      });
+    }
+
+    let authenticatedUser = null;
+    const lookupEmail = email || payment.notes?.email || payment.email;
+    if (lookupEmail) {
+      authenticatedUser = await Database.getUserByEmail(lookupEmail);
+    }
+    if (!authenticatedUser && payment.notes?.userId) {
+      authenticatedUser = await Database.getUserById(payment.notes.userId);
+    }
+
+    const subscription = await RazorpayService.handlePaymentLinkPayment(
+      payment,
+      authenticatedUser
+    );
+
+    const user = authenticatedUser
+      ? await Database.getUserById(authenticatedUser.id)
+      : null;
+
+    res.json({
+      success: true,
+      message: 'Payment repaired and subscription activated',
+      paymentId: payment.id,
+      subscription,
+      user: user ? {
+        id: user.id,
+        email: user.email,
+        current_plan: user.current_plan,
+        subscription_status: user.subscription_status,
+        plan_expires_at: user.plan_expires_at
+      } : null
+    });
+  } catch (error) {
+    console.error('❌ Repair payment failed:', error);
+    res.status(500).json({
+      success: false,
+      error: 'REPAIR_FAILED',
+      message: error.message || 'Failed to repair payment'
+    });
+  }
+});
+
+// Lookup payment event / Razorpay status (admin)
+router.get('/admin/payment-status/:paymentId', requireAdminOrToken, async (req, res) => {
+  try {
+    const { paymentId } = req.params;
+    const event = await Database.getPaymentEvent(paymentId);
+    let razorpayPayment = null;
+    try {
+      razorpayPayment = await RazorpayService.getPayment(paymentId);
+    } catch (e) {
+      razorpayPayment = { error: e.message };
+    }
+
+    res.json({
+      success: true,
+      paymentId,
+      firestoreEvent: event,
+      razorpay: razorpayPayment ? {
+        id: razorpayPayment.id,
+        status: razorpayPayment.status,
+        amount: razorpayPayment.amount,
+        currency: razorpayPayment.currency,
+        notes: razorpayPayment.notes,
+        email: razorpayPayment.email,
+        method: razorpayPayment.method
+      } : null
+    });
+  } catch (error) {
+    console.error('❌ Payment status lookup failed:', error);
+    res.status(500).json({
+      success: false,
+      error: 'STATUS_LOOKUP_FAILED',
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;
