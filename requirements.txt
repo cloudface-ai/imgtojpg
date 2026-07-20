@@ -1,0 +1,4 @@
+# Python deps for camera RAW conversion (libraw-converter-simple.py)
+numpy>=1.26
+pillow>=10.0
+rawpy>=0.19

@@ -57,6 +57,9 @@ async function processWithLibRaw(inputPath, sessionPath, outputFormat, outputPat
   
   const pythonScript = path.join(__dirname, '..', 'libraw-converter-simple.py');
   const tempOutput = path.join(sessionPath, `libraw_${path.basename(outputPath)}`);
+  // Prefer project venv (rawpy/numpy/pillow) when present
+  const venvPython = path.join(__dirname, '..', '.venv', 'bin', 'python3');
+  const pythonBin = fs.existsSync(venvPython) ? venvPython : 'python3';
   
   // Sanitize all paths
   let safeInputPath, safeTempOutput, safePythonScript;
@@ -69,10 +72,10 @@ async function processWithLibRaw(inputPath, sessionPath, outputFormat, outputPat
   }
   
   try {
-    console.log(`🔧 LibRaw command: python3 ${safePythonScript} ${safeInputPath} ${safeTempOutput} ${outputFormat}`);
+    console.log(`🔧 LibRaw command: ${pythonBin} ${safePythonScript} ${safeInputPath} ${safeTempOutput} ${outputFormat}`);
     
     // Use execFile with timeout instead of execSync
-             const { stdout, stderr } = await execFileAsync('python3', [
+             const { stdout, stderr } = await execFileAsync(pythonBin, [
                safePythonScript,
                safeInputPath, 
                safeTempOutput,

@@ -209,3 +209,6 @@ uploads/
 public/converted/
 node_modules/
 .DS_Store
+
+# Python virtualenv for RAW conversion
+.venv/
